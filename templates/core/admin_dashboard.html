@@ -1,0 +1,296 @@
+{% extends 'admin_base.html' %}
+{% load static %}
+
+{% block title %}Admin Analytics Control Panel - RIGBUILDER{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Glowing hover micro-animations for KPI dashboard cards */
+    .hover-scale {
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease !important;
+    }
+    .hover-scale:hover {
+        transform: translateY(-5px) scale(1.02);
+        box-shadow: 0 10px 30px rgba(6, 182, 212, 0.15) !important;
+        border-color: rgba(6, 182, 212, 0.3) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div>
+    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-4 gap-3">
+        <h2 class="fw-bold text-light mb-0"><i class="fa-solid fa-gauge text-gradient me-2"></i>Admin Dashboard Overview</h2>
+        <a id="downloadPdfBtn" href="{% url 'generate_revenue_pdf' %}?limit=6" class="btn btn-premium px-4 py-2 text-center d-flex align-items-center gap-2 rounded-pill" style="font-size: 0.9rem; transition: all 0.3s ease;">
+            <i class="fa-solid fa-file-pdf"></i> Download Revenue Report PDF
+        </a>
+    </div>
+
+    <!-- KPI Summary Grid Cards -->
+    <div class="row g-4 mb-4">
+        <!-- Card 1: Total Sales -->
+        <div class="col-md-3">
+            <div class="glass-panel p-4 border border-secondary-subtle hover-scale" style="border-top: 4px solid #10b981 !important; transition: var(--transition);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary small fw-bold">TOTAL SALES</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #10b981; box-shadow: 0 0 12px rgba(16, 185, 129, 0.2);">
+                        <i class="fa-solid fa-dollar-sign fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-light mb-1">{{ selected_currency.symbol }}{{ total_sales|floatformat:2 }}</h3>
+                <span class="text-secondary small">Lifetime verified orders</span>
+            </div>
+        </div>
+        <!-- Card 2: Total Orders -->
+        <div class="col-md-3">
+            <div class="glass-panel p-4 border border-secondary-subtle hover-scale" style="border-top: 4px solid #3b82f6 !important; transition: var(--transition);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary small fw-bold">TOTAL ORDERS</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.2); color: #3b82f6; box-shadow: 0 0 12px rgba(59, 130, 246, 0.2);">
+                        <i class="fa-solid fa-cart-shopping fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-light mb-1">{{ orders_count }}</h3>
+                <span class="text-secondary small">Total transactions placed</span>
+            </div>
+        </div>
+        <!-- Card 3: Customers -->
+        <div class="col-md-3">
+            <div class="glass-panel p-4 border border-secondary-subtle hover-scale" style="border-top: 4px solid #8b5cf6 !important; transition: var(--transition);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary small fw-bold">CUSTOMERS</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(139, 92, 246, 0.1); border: 1px solid rgba(139, 92, 246, 0.2); color: #8b5cf6; box-shadow: 0 0 12px rgba(139, 92, 246, 0.2);">
+                        <i class="fa-solid fa-user-group fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-light mb-1">{{ users_count }}</h3>
+                <span class="text-secondary small">Registered client accounts</span>
+            </div>
+        </div>
+        <!-- Card 4: Low Stock Alerts -->
+        <div class="col-md-3">
+            <div class="glass-panel p-4 border border-secondary-subtle hover-scale" style="border-top: 4px solid #ef4444 !important; transition: var(--transition);">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="text-secondary small fw-bold">LOW STOCK ALERTS</span>
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="width: 44px; height: 44px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); color: #ef4444; box-shadow: 0 0 12px rgba(239, 68, 68, 0.2);">
+                        <i class="fa-solid fa-triangle-exclamation fs-5"></i>
+                    </div>
+                </div>
+                <h3 class="fw-bold text-light mb-1">{{ low_stock_alerts }}</h3>
+                <span class="text-secondary small">Items with stock &lt; 5 units</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chart.js Graph grids -->
+    <div class="row g-4 mb-4">
+        <!-- Sales line chart -->
+        <div class="col-lg-8">
+            <div class="glass-panel p-4 border border-secondary-subtle h-100">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold text-light mb-0">Revenue Trend (Recent Orders)</h5>
+                    <select id="durationSelect" class="form-select bg-dark border-secondary text-light w-auto py-1 px-3" style="font-size: 0.85rem; border-radius: 8px; cursor: pointer;">
+                        <option value="6" selected>Last 6 Orders</option>
+                        <option value="12">Last 12 Orders</option>
+                        <option value="24">Last 24 Orders</option>
+                        <option value="30">Last 30 Orders</option>
+                        <option value="all">All Orders</option>
+                    </select>
+                </div>
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <!-- Category doughnut chart -->
+        <div class="col-lg-4">
+            <div class="glass-panel p-4 border border-secondary-subtle h-100">
+                <h5 class="fw-bold text-light mb-4">Category Spread</h5>
+                <div style="position: relative; height: 280px; width: 100%;">
+                    <canvas id="categoryChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inventory table and payments logs -->
+    <div class="row g-4">
+        <!-- Low stock table -->
+        <div class="col-lg-6">
+            <div class="glass-panel p-4 border border-secondary-subtle h-100">
+                <h5 class="fw-bold text-light mb-3">Low Stock Alerts</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0 small">
+                        <thead>
+                            <tr class="text-secondary">
+                                <th scope="col">Brand</th>
+                                <th scope="col">Component Name</th>
+                                <th scope="col" class="text-end">Stock Left</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for product in low_stock_products %}
+                                <tr>
+                                    <td>{{ product.brand.name }}</td>
+                                    <td>{{ product.name }}</td>
+                                    <td class="text-end text-danger fw-bold">
+                                        {% if product.inventory %}
+                                            {{ product.inventory.total_stock }}
+                                        {% else %}
+                                            {{ product.stock }}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3" class="text-center text-secondary">All item inventories are fully stocked!</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent payments log -->
+        <div class="col-lg-6">
+            <div class="glass-panel p-4 border border-secondary-subtle h-100">
+                <h5 class="fw-bold text-light mb-3">Recent Transactions</h5>
+                <div class="table-responsive">
+                    <table class="table table-dark table-hover align-middle mb-0 small">
+                        <thead>
+                            <tr class="text-secondary">
+                                <th scope="col">Order #</th>
+                                <th scope="col">Method</th>
+                                <th scope="col">Amount</th>
+                                <th scope="col" class="text-end">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for payment in recent_payments %}
+                                <tr>
+                                    <td>{{ payment.order.order_number }}</td>
+                                    <td>{{ payment.payment_method }}</td>
+                                    <td class="text-gradient fw-bold">{{ payment.currency_code }} {{ payment.amount_paid }}</td>
+                                    <td class="text-end">
+                                        {% if payment.status == 'COMPLETED' %}
+                                            <span class="badge bg-success">Completed</span>
+                                        {% elif payment.status == 'PENDING' %}
+                                            <span class="badge bg-warning text-dark">Pending</span>
+                                        {% elif payment.status == 'FAILED' %}
+                                            <span class="badge bg-danger">Failed</span>
+                                        {% elif payment.status == 'REFUNDED' %}
+                                            <span class="badge bg-secondary">Refunded</span>
+                                        {% else %}
+                                            <span class="badge bg-info">{{ payment.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center text-secondary">No recent transactions recorded.</td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Load Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // 1. Revenue trend line chart
+        const ctxRev = document.getElementById('revenueChart').getContext('2d');
+        
+        // Create premium linear gradient fill
+        const fillGradient = ctxRev.createLinearGradient(0, 0, 0, 240);
+        fillGradient.addColorStop(0, 'rgba(6, 182, 212, 0.35)');
+        fillGradient.addColorStop(1, 'rgba(139, 92, 246, 0.0)');
+
+        const rawChartData = JSON.parse('{{ revenue_chart_data_all|safe }}');
+
+        const revenueChart = new Chart(ctxRev, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'Order Total ({{ selected_currency.code }})',
+                    data: [],
+                    borderColor: '#06b6d4',
+                    pointBackgroundColor: '#8b5cf6',
+                    pointBorderColor: '#f8fafc',
+                    pointHoverRadius: 6,
+                    backgroundColor: fillGradient,
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { 
+                        grid: { color: 'rgba(255, 255, 255, 0.06)' }, 
+                        ticks: { color: '#94a3b8', font: { family: 'Outfit' } } 
+                    },
+                    x: { 
+                        grid: { color: 'rgba(255, 255, 255, 0.04)' }, 
+                        ticks: { color: '#94a3b8', font: { family: 'Outfit' } } 
+                    }
+                },
+                plugins: {
+                    legend: { 
+                        labels: { color: '#f8fafc', font: { family: 'Outfit', size: 12 } } 
+                    }
+                }
+            }
+        });
+
+        function updateChart(limit) {
+            const slicedData = limit === 'all' ? rawChartData : rawChartData.slice(-limit);
+            revenueChart.data.labels = slicedData.map(item => item.date);
+            revenueChart.data.datasets[0].data = slicedData.map(item => item.amount);
+            revenueChart.update();
+        }
+
+        updateChart(6);
+
+        document.getElementById('durationSelect').addEventListener('change', function() {
+            const val = this.value;
+            updateChart(val === 'all' ? 'all' : parseInt(val));
+            document.getElementById('downloadPdfBtn').href = `{% url 'generate_revenue_pdf' %}?limit=${val}`;
+        });
+
+        // 2. Category Doughnut Chart
+        const ctxCat = document.getElementById('categoryChart').getContext('2d');
+        const categoryChart = new Chart(ctxCat, {
+            type: 'doughnut',
+            data: {
+                labels: {{ category_chart_data.labels|safe }},
+                datasets: [{
+                    data: {{ category_chart_data.data|safe }},
+                    backgroundColor: ['#06b6d4', '#8b5cf6', '#2563eb', '#10b981', '#f59e0b'],
+                    borderWidth: 2,
+                    borderColor: '#0f172a'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { 
+                        labels: { color: '#f8fafc', font: { family: 'Outfit', size: 12 } } 
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

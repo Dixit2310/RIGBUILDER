@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Hardware Blog & Benchmarks - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Hardware Blog & <span class="text-gradient">Benchmarks</span></h2>
+        <p class="text-secondary">Read latest reviews, hardware guides, and benchmarking results for modern processors and GPUs.</p>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for blog in blogs %}
+            <div class="col">
+                <div class="glass-panel p-3 border border-secondary-subtle h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        {% if blog.image %}
+                            <div class="mb-3 overflow-hidden rounded-3" style="height: 180px;">
+                                <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid w-100 h-100" style="object-fit: cover;">
+                            </div>
+                        {% endif %}
+                        <span class="text-secondary small">{{ blog.created_at|date:"Y-m-d" }} &bull; By {{ blog.author.username }}</span>
+                        <h5 class="fw-bold text-light mt-2 mb-3">{{ blog.title }}</h5>
+                        <p class="text-secondary small leading-relaxed">{{ blog.content|truncatewords:20 }}</p>
+                    </div>
+                    <div>
+                        <a href="{% url 'blog_detail' blog.slug %}" class="btn btn-premium btn-sm w-100 mt-3">Read Full Article</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-secondary">No blog posts published yet.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

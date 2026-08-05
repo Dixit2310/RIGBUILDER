@@ -1,0 +1,359 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}RigBuilder Control Center{% endblock %}</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    <style>
+        body {
+            background: radial-gradient(circle at 50% 50%, #0d1224 0%, #05070f 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            font-family: 'Outfit', 'Inter', sans-serif;
+        }
+        
+        /* Custom scrollbar for modern aesthetics */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #05070f;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(6, 182, 212, 0.4);
+        }
+        
+        /* Admin Sidebar styling */
+        .admin-sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, rgba(10, 15, 30, 0.9) 0%, rgba(5, 7, 15, 0.95) 100%);
+            backdrop-filter: blur(25px);
+            border-right: 1px solid rgba(255, 255, 255, 0.08);
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+        }
+        
+        .admin-brand {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            margin-bottom: 3rem;
+            position: relative;
+        }
+        
+        /* Pulsing indicator light next to admin title */
+        .brand-pulse {
+            width: 8px;
+            height: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            margin-left: 0.5rem;
+            box-shadow: 0 0 8px #10b981, 0 0 15px #10b981;
+            animation: pulse-glow 2s infinite;
+        }
+        
+        @keyframes pulse-glow {
+            0% { transform: scale(0.9); opacity: 0.6; }
+            50% { transform: scale(1.2); opacity: 1; box-shadow: 0 0 12px #10b981, 0 0 20px #10b981; }
+            100% { transform: scale(0.9); opacity: 0.6; }
+        }
+        
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            flex-grow: 1;
+        }
+        
+        .admin-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.9rem 1.2rem;
+            color: #94a3b8;
+            text-decoration: none;
+            border-radius: 14px;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid transparent;
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .admin-nav-link i {
+            margin-right: 0.9rem;
+            font-size: 1.2rem;
+            width: 24px;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .admin-nav-link:hover {
+            color: #f8fafc;
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+        
+        .admin-nav-link:hover i {
+            transform: scale(1.15);
+        }
+        
+        .admin-nav-link.active {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15) 0%, rgba(37, 99, 235, 0.15) 100%);
+            color: #3b82f6;
+            border-color: rgba(59, 130, 246, 0.25);
+            box-shadow: 0 4px 20px rgba(59, 130, 246, 0.15);
+            text-shadow: 0 0 8px rgba(59, 130, 246, 0.4);
+        }
+        
+        /* Main Layout Content Area */
+        .admin-main {
+            margin-left: 280px;
+            flex-grow: 1;
+            padding: 2.5rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Admin topbar header */
+        .admin-topbar {
+            background: rgba(15, 23, 42, 0.35);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 20px;
+            padding: 1.2rem 2rem;
+            margin-bottom: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            position: relative;
+            z-index: 1050; /* Ensure dropdowns display above all content */
+        }
+        
+        .user-status-pill {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+            color: #10b981;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            padding: 0.25rem 0.6rem;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+        
+        @media (max-width: 991.98px) {
+            .admin-sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+            .admin-sidebar.show {
+                transform: translateX(0);
+            }
+            .admin-main {
+                margin-left: 0;
+                padding: 1.5rem;
+            }
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Left Navigation Sidebar -->
+    <div class="admin-sidebar d-flex flex-column justify-content-between">
+        <div>
+            <a class="admin-brand" href="{% url 'admin_dashboard' %}">
+                <i class="fa-solid fa-square-poll-vertical text-gradient me-2"></i>
+                <span class="text-gradient fw-bold">RIGBUILDER</span>
+                <span class="brand-pulse"></span>
+            </a>
+            
+            <div class="admin-nav">
+                <a href="{% url 'admin_dashboard' %}" class="admin-nav-link {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}">
+                    <i class="fa-solid fa-chart-pie text-cyan"></i>Overview Dashboard
+                </a>
+                <a href="{% url 'admin_products' %}" class="admin-nav-link {% if request.resolver_match.url_name == 'admin_products' or request.resolver_match.url_name == 'admin_product_edit' or request.resolver_match.url_name == 'admin_product_create' %}active{% endif %}">
+                    <i class="fa-solid fa-cubes text-purple"></i>Manage Catalog
+                </a>
+                <a href="{% url 'admin_orders' %}" class="admin-nav-link {% if request.resolver_match.url_name == 'admin_orders' %}active{% endif %}">
+                    <i class="fa-solid fa-file-invoice-dollar text-emerald"></i>Order Logs
+                </a>
+                <a href="{% url 'admin_users' %}" class="admin-nav-link {% if request.resolver_match.url_name == 'admin_users' %}active{% endif %}">
+                    <i class="fa-solid fa-users text-amber"></i>Client Accounts
+                </a>
+                <a href="/admin/" class="admin-nav-link">
+                    <i class="fa-solid fa-gears text-indigo"></i>Database Admin
+                </a>
+            </div>
+        </div>
+        
+        <div>
+            <hr class="border-secondary mb-4 opacity-25">
+            <a href="{% url 'home' %}" class="admin-nav-link text-info" style="background: rgba(6, 182, 212, 0.05);">
+                <i class="fa-solid fa-arrow-left-long"></i>Return to Shop
+            </a>
+            <a href="{% url 'logout' %}" class="admin-nav-link text-danger mt-2" style="background: rgba(239, 68, 68, 0.05);">
+                <i class="fa-solid fa-power-off"></i>System Log Out
+            </a>
+        </div>
+    </div>
+
+    <!-- Right Side Dashboard Frame -->
+    <div class="admin-main">
+        <!-- Dashboard Top Panel Bar -->
+        <div class="admin-topbar">
+            <div class="d-flex align-items-center">
+                <button class="btn btn-outline-secondary d-lg-none me-3 border-secondary-subtle rounded-pill" type="button" onclick="document.querySelector('.admin-sidebar').classList.toggle('show')">
+                    <i class="fa-solid fa-bars text-light"></i>
+                </button>
+                <h5 class="fw-bold mb-0 text-light d-none d-sm-block"><i class="fa-solid fa-shield-halved text-gradient me-2"></i>Administration Console</h5>
+            </div>
+            
+            <div class="d-flex align-items-center gap-4">
+                <!-- Currency Selector -->
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown">
+                        <i class="fa-solid fa-coins text-cyan me-1"></i>{{ selected_currency.symbol }} {{ selected_currency.code }}
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark mt-2">
+                        {% for currency in currencies %}
+                            <li>
+                                <a class="dropdown-item d-flex align-items-center" href="#" onclick="changeCurrency('{{ currency.id }}'); return false;">
+                                    <span class="me-2 text-cyan fw-bold">{{ currency.symbol }}</span>
+                                    <span>{{ currency.name }} ({{ currency.code }})</span>
+                                </a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                <div class="d-flex align-items-center gap-3" style="cursor: pointer;" data-bs-toggle="modal" data-bs-target="#adminProfileModal" title="View SysAdmin Profile">
+                    <div class="text-end d-none d-md-block">
+                        <span class="d-block fw-bold text-light small">{{ request.user.username }}</span>
+                        <span class="user-status-pill">SYSADMIN</span>
+                    </div>
+                    {% if request.user.profile_picture %}
+                        <img src="{{ request.user.profile_picture.url }}" class="rounded-circle border border-info" style="width: 44px; height: 44px; object-fit: cover; box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);">
+                    {% else %}
+                        <div class="rounded-circle bg-gradient text-white fw-bold d-flex align-items-center justify-content-center border border-info" style="width: 44px; height: 44px; background: linear-gradient(135deg, #06b6d4, #8b5cf6); box-shadow: 0 0 10px rgba(6, 182, 212, 0.3);">
+                            A
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Main Core Dashboard Content View -->
+        <div class="flex-grow-1">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Admin Profile Modal -->
+    <div class="modal fade" id="adminProfileModal" tabindex="-1" aria-labelledby="adminProfileModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content glass-panel border border-secondary-subtle text-light" style="background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(25px);">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title fw-bold text-gradient" id="adminProfileModalLabel"><i class="fa-solid fa-address-card me-2"></i>Administrator Profile</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center pt-4 pb-5">
+                    <!-- Profile Picture -->
+                    <div class="mb-4 position-relative d-inline-block">
+                        {% if request.user.profile_picture %}
+                            <img src="{{ request.user.profile_picture.url }}" class="rounded-circle border border-info img-thumbnail bg-transparent" style="width: 120px; height: 120px; object-fit: cover; box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);">
+                        {% else %}
+                            <div class="rounded-circle bg-gradient text-white fw-bold d-flex align-items-center justify-content-center border border-info" style="width: 120px; height: 120px; font-size: 3rem; background: linear-gradient(135deg, #06b6d4, #8b5cf6); box-shadow: 0 0 25px rgba(6, 182, 212, 0.4);">
+                                A
+                            </div>
+                        {% endif %}
+                        <span class="position-absolute bottom-0 end-0 badge rounded-pill bg-success border border-dark" style="font-size: 0.75rem; padding: 0.4rem 0.6rem; box-shadow: 0 0 10px #10b981;">
+                            <i class="fa-solid fa-circle-check me-1"></i>Active
+                        </span>
+                    </div>
+
+                    <!-- User Information -->
+                    <h4 class="fw-bold mb-1 text-light">{% if request.user.first_name %}{{ request.user.get_full_name }}{% else %}{{ request.user.username }}{% endif %}</h4>
+                    <p class="text-secondary small mb-3">@{{ request.user.username }} &bull; <span class="badge bg-danger" style="font-size: 0.65rem;">SYSTEM ADMINISTRATOR</span></p>
+                    
+                    <hr class="border-secondary opacity-25 w-75 mx-auto mb-4">
+                    
+                    <div class="text-start px-4">
+                        <div class="mb-3">
+                            <span class="d-block text-secondary small fw-bold"><i class="fa-solid fa-envelope me-2 text-cyan"></i>EMAIL ADDRESS</span>
+                            <span class="text-light">{{ request.user.email }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <span class="d-block text-secondary small fw-bold"><i class="fa-solid fa-phone me-2 text-purple"></i>PHONE NUMBER</span>
+                            <span class="text-light">{{ request.user.phone_number|default:"Not Configured" }}</span>
+                        </div>
+                        <div class="mb-3">
+                            <span class="d-block text-secondary small fw-bold"><i class="fa-solid fa-calendar-day me-2 text-emerald"></i>JOINED DATE</span>
+                            <span class="text-light">{{ request.user.date_joined|date:"F d, Y @ H:i" }}</span>
+                        </div>
+                        <div class="mb-0">
+                            <span class="d-block text-secondary small fw-bold"><i class="fa-solid fa-quote-left me-2 text-amber"></i>BIOGRAPHY / TAGLINE</span>
+                            <p class="text-secondary small mt-1 mb-0 italic" style="font-style: italic;">"{{ request.user.bio|default:"No administrator biography has been provided yet." }}"</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0 pt-0">
+                    <button type="button" class="btn btn-outline-info w-100" data-bs-dismiss="modal">Close Profile</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Country/Currency Switcher -->
+    <script>
+        function changeCountry(countryId) {
+            window.location.href = `/products/select-country/${countryId}/`;
+        }
+        function changeCurrency(currencyId) {
+            window.location.href = `/products/select-currency/${currencyId}/`;
+        }
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

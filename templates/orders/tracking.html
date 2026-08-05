@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Track Order: {{ order.order_number }} - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="col-lg-9 mx-auto">
+        <div class="glass-panel p-4 border border-secondary-subtle mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4">
+                <div>
+                    <h3 class="fw-bold text-light mb-1">Track Order: #{{ order.order_number }}</h3>
+                    <p class="text-secondary small mb-0">Placed on: {{ order.created_at|date:"Y-m-d H:i" }} &bull; Est. Delivery: {{ delivery_date|date:"Y-m-d" }}</p>
+                </div>
+                <a href="{% url 'invoice_download' order.order_number %}" class="btn btn-premium btn-sm"><i class="fa-solid fa-file-pdf me-2"></i>Quotation Invoice</a>
+            </div>
+
+            <!-- Estimated Delivery Alert -->
+            <div class="alert alert-primary glass-panel border border-secondary text-light mb-4">
+                <i class="fa-solid fa-circle-check text-success me-2"></i> Current Status: <b>{{ order.get_status_display }}</b>. We are processing your rig elements!
+            </div>
+
+            <!-- Custom Horizontal Timeline Progress Bar -->
+            <div class="mb-5 position-relative">
+                <div class="progress progress-premium" style="height: 6px;">
+                    <div class="progress-bar progress-bar-premium" role="progressbar" style="width: {{ progress }}%;"></div>
+                </div>
+                <div class="d-flex justify-content-between mt-3 flex-wrap">
+                    {% for step in timeline %}
+                        <div class="text-center" style="width: 13%;">
+                            <span class="d-block fs-4 {% if step.completed %}text-gradient{% else %}text-secondary{% endif %}">
+                                {% if step.label == 'Pending' %}<i class="fa-regular fa-clock"></i>
+                                {% elif step.label == 'Confirmed' %}<i class="fa-solid fa-circle-check"></i>
+                                {% elif step.label == 'Packed' %}<i class="fa-solid fa-box-open"></i>
+                                {% elif step.label == 'Ready' %}<i class="fa-solid fa-dolly"></i>
+                                {% elif step.label == 'Shipped' %}<i class="fa-solid fa-truck-fast"></i>
+                                {% elif step.label == 'Out For Delivery' %}<i class="fa-solid fa-motorcycle"></i>
+                                {% else %}<i class="fa-solid fa-house-chimney-user"></i>
+                                {% endif %}
+                            </span>
+                            <span class="small fw-semibold {% if step.completed %}text-light{% else %}text-secondary{% endif %} d-block mt-1" style="font-size: 0.75rem;">{{ step.label }}</span>
+                            {% if step.date %}
+                                <span class="text-secondary" style="font-size: 0.65rem;">{{ step.date|date:"M d" }}</span>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Package Contents -->
+            <h5 class="fw-bold text-light mb-3">Package Contents</h5>
+            <div class="card bg-dark border-secondary p-3 mb-4">
+                <ul class="list-unstyled text-secondary small mb-0">
+                    {% for item in order.items.all %}
+                        <li class="d-flex justify-content-between border-bottom border-secondary pb-2 mb-2">
+                            <span>
+                                <i class="fa-solid fa-cube text-gradient me-2"></i>
+                                {% if item.product %}
+                                    {{ item.product.brand.name }} {{ item.product.name }}
+                                {% else %}
+                                    {{ item.pc_build.name }}
+                                {% endif %}
+                                <b class="text-light">x {{ item.quantity }}</b>
+                            </span>
+                            <span class="fw-bold text-light">{{ order.country.currency.symbol }}{{ item.price_local }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+        </div>
+    </div>
+</div>
+{% endblock %}

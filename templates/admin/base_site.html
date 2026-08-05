@@ -1,0 +1,33 @@
+{% extends "admin/base.html" %}
+{% load static %}
+
+{% block extrastyle %}
+{{ block.super }}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+<link rel="stylesheet" href="{% static 'css/admin_theme.css' %}?v=1.0.2">
+{% endblock %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name">
+    <a href="{% url 'admin:index' %}">
+        <i class="fa-solid fa-square-poll-vertical me-2" style="color: #14b8a6;"></i>
+        {{ site_header|default:_('Django administration') }}
+    </a>
+</h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block footer %}
+{{ block.super }}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Strip target="_blank" from all links to keep everything in the same tab
+        document.querySelectorAll('a[target="_blank"]').forEach(function(link) {
+            link.removeAttribute('target');
+        });
+    });
+</script>
+{% endblock %}

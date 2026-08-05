@@ -1,0 +1,339 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Product Catalog - RIGBUILDER Components{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row g-4">
+        
+        <!-- Filter Sidebar -->
+        <div class="col-lg-3">
+            <div class="glass-panel p-4 border border-secondary-subtle">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h5 class="fw-bold mb-0 text-light"><i class="fa-solid fa-filter text-gradient me-2"></i>Filters</h5>
+                    <a href="{% url 'catalog' %}" class="small text-secondary text-decoration-none">Clear All</a>
+                </div>
+                
+                <form method="GET" action="{% url 'catalog' %}">
+                    <!-- Carry forward text search -->
+                    {% if query %}
+                        <input type="hidden" name="q" value="{{ query }}">
+                    {% endif %}
+
+                    <!-- Category Filter -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-light mb-2">Category</h6>
+                        <select name="category" class="form-select bg-dark text-light border-secondary small" onchange="this.form.submit()">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat.slug }}" {% if selected_category == cat.slug %}selected{% endif %}>{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Brand Filter -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-light mb-2">Brand</h6>
+                        <select name="brand" class="form-select bg-dark text-light border-secondary small" onchange="this.form.submit()">
+                            <option value="">All Brands</option>
+                            {% for brand in brands %}
+                                <option value="{{ brand.slug }}" {% if selected_brand == brand.slug %}selected{% endif %}>{{ brand.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Sockets Filter -->
+                    {% if sockets %}
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-light mb-2">CPU Socket</h6>
+                        <select name="socket" class="form-select bg-dark text-light border-secondary small" onchange="this.form.submit()">
+                            <option value="">All Sockets</option>
+                            {% for s in sockets %}
+                                <option value="{{ s }}" {% if selected_socket == s %}selected{% endif %}>{{ s }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <!-- Form Factor Filter -->
+                    {% if form_factors %}
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-light mb-2">Form Factor</h6>
+                        <select name="form_factor" class="form-select bg-dark text-light border-secondary small" onchange="this.form.submit()">
+                            <option value="">All Sizes</option>
+                            {% for ff in form_factors %}
+                                <option value="{{ ff }}" {% if selected_form_factor == ff %}selected{% endif %}>{{ ff }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <!-- Price range -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-light mb-2">Price Limit ({{ selected_currency.code }})</h6>
+                        <div class="d-flex gap-2">
+                            <input type="number" name="price_min" class="form-control bg-dark border-secondary text-light small rounded-pill" placeholder="Min" value="{{ price_min }}">
+                            <input type="number" name="price_max" class="form-control bg-dark border-secondary text-light small rounded-pill" placeholder="Max" value="{{ price_max }}">
+                        </div>
+                        <button type="submit" class="btn btn-premium btn-sm w-100 mt-3">Apply Price</button>
+                    </div>
+
+                    <!-- Availability -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold text-light mb-2">Availability</h6>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="availability" id="availAll" value="" {% if not selected_availability %}checked{% endif %} onchange="this.form.submit()">
+                            <label class="form-check-label text-secondary small" for="availAll">All Items</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="availability" id="availStock" value="in_stock" {% if selected_availability == 'in_stock' %}checked{% endif %} onchange="this.form.submit()">
+                            <label class="form-check-label text-secondary small" for="availStock">In Stock Only</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Product Grid listing -->
+        <div class="col-lg-9">
+            <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+                <span class="text-secondary">{{ page_obj.paginator.count }} Components found</span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="text-secondary small">Sort:</span>
+                    <form method="GET" action="{% url 'catalog' %}" id="sortForm">
+                        <!-- Keep filters in sort redirect -->
+                        {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+                        {% if selected_brand %}<input type="hidden" name="brand" value="{{ selected_brand }}">{% endif %}
+                        {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+                        
+                        <select name="sort_by" class="form-select bg-dark text-light border-secondary small" onchange="this.form.submit()">
+                            <option value="popular" {% if selected_sort == 'popular' %}selected{% endif %}>Popular / Featured</option>
+                            <option value="latest" {% if selected_sort == 'latest' %}selected{% endif %}>Latest Releases</option>
+                            <option value="price_low" {% if selected_sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                            <option value="price_high" {% if selected_sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                            <option value="rating" {% if selected_sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+                        </select>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Products listing -->
+            <div class="row row-cols-1 row-cols-md-3 g-4">
+                {% for product in page_obj %}
+                    <div class="col">
+                        <div class="product-card">
+                            <div>
+                                <div class="position-relative text-center mb-3 overflow-hidden bg-dark rounded-3 p-2" style="height: 180px;">
+                                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid h-100" style="object-fit: contain;">
+                                    {% if product.discount_percentage > 0 %}
+                                        <span class="position-absolute top-0 start-0 m-2 badge bg-danger">-{{ product.discount_percentage }}%</span>
+                                    {% endif %}
+                                    <button onclick="toggleWishlist(event, this, {{ product.id }})" class="btn btn-dark btn-sm rounded-circle position-absolute top-0 end-0 m-2 border border-secondary d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0; z-index: 10;" title="Toggle Wishlist">
+                                        <i class="{% if product.id in wishlist_product_ids %}fa-solid text-danger{% else %}fa-regular text-light{% endif %} fa-heart"></i>
+                                    </button>
+                                </div>
+                                <span class="text-secondary small fw-semibold">{{ product.brand.name }} &bull; {{ product.category.name }}</span>
+                                <h6 class="fw-bold text-light text-truncate mt-1 mb-1">
+                                    <a href="{% url 'product_detail' product.slug %}" class="text-decoration-none text-light">{{ product.name }}</a>
+                                </h6>
+                                <div class="d-flex align-items-center gap-1 mb-3">
+                                    <span class="text-warning small"><i class="fa-solid fa-star"></i></span>
+                                    <span class="small text-light">{{ product.rating }}</span>
+                                </div>
+                            </div>
+                            
+                            <div>
+                                <!-- Checkbox to add to side comparison -->
+                                <div class="form-check mb-3">
+                                    <input class="form-check-input compare-checkbox" type="checkbox" value="{{ product.id }}" id="comp-{{ product.id }}">
+                                    <label class="form-check-label text-secondary small" for="comp-{{ product.id }}">Compare Component</label>
+                                </div>
+
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        {% if product.discount_percentage > 0 %}
+                                            <span class="text-decoration-line-through text-secondary small d-block">{% convert_price product.original_price_usd %}</span>
+                                        {% endif %}
+                                        <h5 class="text-gradient fw-bold mb-0">{% convert_price product.final_price_usd %}</h5>
+                                    </div>
+                                    <div class="d-flex gap-2 align-items-center">
+                                        <a href="{% url 'add_to_build' product.id %}" class="btn btn-outline-info btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; padding: 0;" title="Add to Active Build Slot">
+                                            <i class="fa-solid fa-plus"></i>
+                                        </a>
+                                        <form action="{% url 'cart_add' product.id %}" method="POST">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-premium btn-sm px-3">Cart</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="col-12 text-center py-5">
+                        <p class="text-secondary">No products match your active search filters.</p>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <!-- Comparative Float Alert bar -->
+            <div id="compare-bar" class="fixed-bottom glass-panel border border-secondary-subtle p-3 mx-auto mb-4 col-11 col-md-6 d-none" style="z-index: 1050; background: rgba(15,23,42,0.9);">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="fw-bold text-light mb-0">Product Comparison</h6>
+                        <span id="compare-count" class="text-secondary small">0 products selected</span>
+                    </div>
+                    <button id="compare-submit-btn" class="btn btn-premium btn-sm px-4">Compare Now</button>
+                </div>
+            </div>
+
+            <!-- Pagination list -->
+            {% if page_obj.has_other_pages %}
+                <nav class="mt-5">
+                    <ul class="pagination justify-content-center">
+                        {% if page_obj.has_previous %}
+                            <li class="page-item"><a class="page-link bg-dark text-light border-secondary" href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}{% if selected_sort %}&sort_by={{ selected_sort }}{% endif %}">Previous</a></li>
+                        {% endif %}
+                        
+                        <li class="page-item active"><span class="page-link bg-primary border-primary">{{ page_obj.number }}</span></li>
+                        
+                        {% if page_obj.has_next %}
+                            <li class="page-item"><a class="page-link bg-dark text-light border-secondary" href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}{% if selected_sort %}&sort_by={{ selected_sort }}{% endif %}">Next</a></li>
+                        {% endif %}
+                    </ul>
+                </nav>
+            {% endif %}
+        </div>
+        
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const checkboxes = document.querySelectorAll(".compare-checkbox");
+        const compareBar = document.getElementById("compare-bar");
+        const compareCount = document.getElementById("compare-count");
+        const compareSubmitBtn = document.getElementById("compare-submit-btn");
+        
+        let selectedIds = [];
+        
+        checkboxes.forEach(box => {
+            box.addEventListener("change", function() {
+                const id = this.value;
+                if (this.checked) {
+                    if (selectedIds.length >= 4) {
+                        this.checked = false;
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Limit Reached',
+                            text: 'You can compare up to 4 components side by side.',
+                            background: '#0f172a',
+                            color: '#f8fafc'
+                        });
+                        return;
+                    }
+                    selectedIds.push(id);
+                } else {
+                    selectedIds = selectedIds.filter(x => x !== id);
+                }
+                
+                updateCompareBar();
+            });
+        });
+        
+        function updateCompareBar() {
+            if (selectedIds.length > 1) {
+                compareBar.classList.remove("d-none");
+                compareCount.innerText = `${selectedIds.length} products selected for comparison`;
+            } else {
+                compareBar.classList.add("d-none");
+            }
+        }
+        
+        compareSubmitBtn.addEventListener("click", function() {
+            if (selectedIds.length > 1) {
+                window.location.href = `/products/compare/?ids=${selectedIds.join(',')}`;
+            }
+        });
+    });
+
+    function toggleWishlist(event, btn, productId) {
+        if (event) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+
+        // If user is not authenticated, redirect to login
+        {% if not user.is_authenticated %}
+            window.location.href = "{% url 'login' %}";
+            return;
+        {% endif %}
+
+        const url = `/orders/wishlist/toggle/${productId}/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const icon = btn.querySelector('i');
+                if (data.added) {
+                    icon.classList.remove('fa-regular', 'text-light');
+                    icon.classList.add('fa-solid', 'text-danger');
+                } else {
+                    icon.classList.remove('fa-solid', 'text-danger');
+                    icon.classList.add('fa-regular', 'text-light');
+                }
+                
+                // Show toast notification
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: '#0f172a',
+                    color: '#f8fafc'
+                });
+                
+                // Update badge counts in header
+                updateWishlistBadge(data.wishlist_count);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function updateWishlistBadge(count) {
+        const headerWishlistLink = document.querySelector('a[href*="wishlist"]');
+        if (headerWishlistLink) {
+            let badge = headerWishlistLink.querySelector('.badge');
+            if (count > 0) {
+                if (badge) {
+                    badge.innerText = count;
+                } else {
+                    badge = document.createElement('span');
+                    badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                    badge.style.fontSize = '0.65rem';
+                    badge.innerText = count;
+                    headerWishlistLink.appendChild(badge);
+                }
+            } else {
+                if (badge) badge.remove();
+            }
+        }
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Shopping Cart - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="fw-bold mb-4"><i class="fa-solid fa-cart-shopping text-gradient me-2"></i>Shopping Cart</h2>
+    
+    {% if cart.items.exists %}
+        <div class="row g-4">
+            <!-- Left: Cart Items list -->
+            <div class="col-lg-8">
+                <div class="d-flex flex-column gap-3">
+                    {% for item in cart.items.all %}
+                        <div class="cart-item-card d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                            <!-- Left: Image & Details -->
+                            <div class="d-flex align-items-center gap-3 col-md-6">
+                                {% if item.product %}
+                                    <img src="{{ item.product.image.url }}" width="65" height="65" class="rounded object-fit-contain bg-dark p-1 border border-secondary">
+                                    <div class="text-truncate">
+                                        <h6 class="fw-bold text-light mb-0 text-truncate">{{ item.product.brand.name }} {{ item.product.name }}</h6>
+                                        <span class="text-secondary small">{{ item.product.category.name }}</span>
+                                    </div>
+                                {% elif item.pc_build %}
+                                    <div class="fs-3 text-gradient p-2 bg-dark rounded border border-secondary" style="width: 65px; height: 65px; text-align: center; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <i class="fa-solid fa-screwdriver-wrench"></i>
+                                    </div>
+                                    <div class="w-100">
+                                        <h6 class="fw-bold text-light mb-0">{{ item.pc_build.name }}</h6>
+                                        <span class="text-secondary small d-block mb-1">Custom PC Build ({{ item.pc_build.build_type|title }})</span>
+                                        
+                                        <!-- Spec detail list -->
+                                        <div class="mt-2 small text-secondary" style="font-size: 0.8rem; line-height: 1.4;">
+                                            {% if item.pc_build.cpu %}<div><i class="fa-solid fa-microchip me-1 text-info" style="width: 16px;"></i>CPU: {{ item.pc_build.cpu.brand.name }} {{ item.pc_build.cpu.name }}</div>{% endif %}
+                                            {% if item.pc_build.motherboard %}<div><i class="fa-solid fa-chess-board me-1 text-purple" style="width: 16px;"></i>Mobo: {{ item.pc_build.motherboard.brand.name }} {{ item.pc_build.motherboard.name }}</div>{% endif %}
+                                            {% if item.pc_build.ram %}<div><i class="fa-solid fa-memory me-1 text-success" style="width: 16px;"></i>RAM: {{ item.pc_build.ram.brand.name }} {{ item.pc_build.ram.name }}</div>{% endif %}
+                                            {% if item.pc_build.gpu %}<div><i class="fa-solid fa-mobile-screen me-1 text-warning" style="width: 16px;"></i>GPU: {{ item.pc_build.gpu.brand.name }} {{ item.pc_build.gpu.name }}</div>{% endif %}
+                                            {% if item.pc_build.ssd %}<div><i class="fa-solid fa-hard-drive me-1 text-cyan" style="width: 16px;"></i>SSD: {{ item.pc_build.ssd.brand.name }} {{ item.pc_build.ssd.name }}</div>{% endif %}
+                                            {% if item.pc_build.hdd %}<div><i class="fa-solid fa-database me-1 text-secondary" style="width: 16px;"></i>HDD: {{ item.pc_build.hdd.brand.name }} {{ item.pc_build.hdd.name }}</div>{% endif %}
+                                            {% if item.pc_build.nvme %}<div><i class="fa-solid fa-bolt me-1 text-primary" style="width: 16px;"></i>NVMe: {{ item.pc_build.nvme.brand.name }} {{ item.pc_build.nvme.name }}</div>{% endif %}
+                                            {% if item.pc_build.psu %}<div><i class="fa-solid fa-plug me-1 text-danger" style="width: 16px;"></i>PSU: {{ item.pc_build.psu.brand.name }} {{ item.pc_build.psu.name }}</div>{% endif %}
+                                            {% if item.pc_build.cabinet %}<div><i class="fa-solid fa-box me-1 text-light" style="width: 16px;"></i>Cabinet: {{ item.pc_build.cabinet.brand.name }} {{ item.pc_build.cabinet.name }}</div>{% endif %}
+                                            {% if item.pc_build.cpu_cooler %}<div><i class="fa-solid fa-snowflake me-1 text-info" style="width: 16px;"></i>Cooler: {{ item.pc_build.cpu_cooler.brand.name }} {{ item.pc_build.cpu_cooler.name }}</div>{% endif %}
+                                        </div>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            
+                            <!-- Middle: Quantity Controls -->
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="text-secondary small d-md-none">Quantity:</span>
+                                <div class="d-flex align-items-center gap-2 bg-dark p-1 border border-secondary">
+                                    <a href="{% url 'cart_update_quantity' item.id 'decrease' %}" class="quantity-control-btn"><i class="fa-solid fa-minus" style="font-size: 0.7rem;"></i></a>
+                                    <span class="fw-bold text-light px-2" style="min-width: 24px; text-align: center;">{{ item.quantity }}</span>
+                                    <a href="{% url 'cart_update_quantity' item.id 'increase' %}" class="quantity-control-btn"><i class="fa-solid fa-plus" style="font-size: 0.7rem;"></i></a>
+                                </div>
+                            </div>
+                            
+                            <!-- Right: Subtotal Price & Actions -->
+                            <div class="d-flex align-items-center justify-content-between justify-content-md-end gap-4">
+                                <div class="text-md-end">
+                                    <span class="text-secondary small d-md-none">Subtotal:</span>
+                                    <h5 class="text-gradient fw-bold mb-0">{% convert_price item.get_subtotal_usd %}</h5>
+                                </div>
+                                <a href="{% url 'cart_remove' item.id %}" class="btn btn-outline-danger btn-sm rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; padding: 0;"><i class="fa-solid fa-trash-can" style="font-size: 0.85rem;"></i></a>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Right: Order Pricing summary and coupons -->
+            <div class="col-lg-4">
+                <!-- Apply coupon -->
+                <div class="glass-panel p-4 border border-secondary-subtle mb-4">
+                    <h5 class="fw-bold text-light mb-3">Apply Coupon</h5>
+                    <form action="{% url 'apply_coupon' %}" method="POST" class="input-group">
+                        {% csrf_token %}
+                        <input type="text" name="coupon_code" class="form-control bg-dark border-secondary text-light rounded-pill" placeholder="COUPON CODE" value="{{ coupon.code }}">
+                        <button type="submit" class="btn btn-premium rounded-start-0 rounded-pill">Apply</button>
+                    </form>
+                    {% if coupon %}
+                        <div class="text-success small mt-2 d-flex align-items-center gap-1">
+                            <i class="fa-solid fa-circle-check"></i> Coupon '{{ coupon.code }}' applied (-{{ coupon.value }} {{ coupon.discount_type }})
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Price summary panel -->
+                <div class="glass-panel p-4 border border-secondary-subtle">
+                    <h5 class="fw-bold text-light mb-4">Order Summary</h5>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Subtotal (Local):</span>
+                        <span class="fw-bold text-light">{{ symbol }} {{ subtotal }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Discount:</span>
+                        <span class="text-success fw-semibold">- {{ symbol }} {{ discount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">GST / Estimated Tax ({{ country.default_tax_rate }}%):</span>
+                        <span class="text-secondary">{{ symbol }} {{ tax }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Shipping:</span>
+                        <span class="text-secondary">{{ symbol }} {{ shipping }}</span>
+                    </div>
+                    <hr class="border-secondary">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h6 class="fw-bold text-light mb-0">Grand Total:</h6>
+                        <h4 class="text-gradient fw-bold mb-0">{{ symbol }} {{ grand_total }}</h4>
+                    </div>
+
+                    <a href="{% url 'checkout' %}" class="btn btn-premium w-100 py-2 text-center rounded-pill"><i class="fa-solid fa-credit-card me-2"></i>Proceed to Checkout</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5 glass-panel border border-secondary-subtle">
+            <i class="fa-solid fa-cart-shopping text-secondary display-3 mb-3"></i>
+            <h4 class="fw-bold text-light">Your Cart is Empty</h4>
+            <p class="text-secondary mb-4">Browse our parts catalog or configurator to add computer elements.</p>
+            <a href="{% url 'catalog' %}" class="btn btn-premium px-4 rounded-pill">Browse Components</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

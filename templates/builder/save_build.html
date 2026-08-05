@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Save PC Build Configuration - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    {% include 'builder/_menubar.html' %}
+    
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="glass-panel p-5 border border-secondary-subtle my-5">
+                <div class="text-center mb-4">
+                    <div class="rounded-circle bg-gradient text-white d-flex align-items-center justify-content-center mx-auto mb-3" style="width: 60px; height: 60px; background: linear-gradient(135deg, #06b6d4, #8b5cf6); box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);">
+                        <i class="fa-solid fa-bookmark fs-4"></i>
+                    </div>
+                    <h3 class="fw-bold text-light">Save Configuration</h3>
+                    <p class="text-secondary small">Give your customized PC build a unique name to save it to your profile portfolio.</p>
+                </div>
+                
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label for="build_name" class="form-label text-secondary small fw-semibold">Configuration Name</label>
+                        <input type="text" name="build_name" id="build_name" class="form-control bg-dark border-secondary text-light px-3 py-2 rounded-pill" placeholder="e.g. My Ultimate Gaming Rig" value="{{ build.name }}" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="target_system" class="form-label text-secondary small fw-semibold">Target System Classification</label>
+                        <input type="text" name="target_system" id="target_system" class="form-control bg-dark border-secondary text-light px-3 py-2 rounded-pill" placeholder="e.g. Crypto Currency System, Trading System" value="{{ build.target_system|default:'' }}">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="system_requirements" class="form-label text-secondary small fw-semibold">System Requirements Note (Specs / Features)</label>
+                        <textarea name="system_requirements" id="system_requirements" rows="3" class="form-control bg-dark border-secondary text-light px-3 py-2 rounded-3" placeholder="e.g. 32GB RAM, 850W PSU, NVIDIA GPU, Multi-monitor support">{{ build.system_requirements|default:'' }}</textarea>
+                    </div>
+
+
+                    
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-premium py-2 rounded-pill"><i class="fa-solid fa-cloud-arrow-up me-2"></i>Persist & Save</button>
+                        <a href="{% url 'builder' %}" class="btn btn-outline-secondary py-2 rounded-pill">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

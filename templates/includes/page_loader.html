@@ -1,0 +1,118 @@
+{% load static %}
+<link rel="stylesheet" href="{% static 'css/loader.css' %}">
+
+<div id="futuristic-loader" class="futuristic-loader-wrapper">
+    <!-- Animated futuristic background -->
+    <div class="loader-bg-grid"></div>
+    <div class="loader-bg-glow"></div>
+    
+    <div class="loader-bg-particles">
+        <div class="particle p1"></div>
+        <div class="particle p2"></div>
+        <div class="particle p3"></div>
+        <div class="particle p4"></div>
+        <div class="particle p5"></div>
+    </div>
+    
+    <div class="loader-container">
+        <!-- Website Brand Logo -->
+        <div class="loader-brand-logo mb-3">
+            <i class="fa-solid fa-microchip logo-pulse-icon"></i>
+            <span class="logo-text">RIG<span class="logo-accent">BUILDER</span></span>
+        </div>
+        
+        <!-- Interactive PC Assembly Animation SVG Layout -->
+        <div class="svg-wrapper mb-4">
+            <svg id="pc-assembly-svg" viewBox="0 0 400 400" width="260" height="260">
+              <!-- Definitions for Gradients -->
+              <defs>
+                <linearGradient id="rgb-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#3B82F6" />
+                  <stop offset="33%" stop-color="#8B5CF6" />
+                  <stop offset="66%" stop-color="#ec4899" />
+                  <stop offset="100%" stop-color="#00F5FF" />
+                </linearGradient>
+              </defs>
+              
+              <!-- Motherboard Base -->
+              <g id="mb-base" class="assembly-part">
+                <!-- Board Chassis -->
+                <rect x="50" y="50" width="300" height="300" rx="12" fill="#070a13" stroke="#1f2937" stroke-width="2.5" />
+                <!-- Circuit Tracks details -->
+                <path d="M 70,70 L 140,70 L 140,130" stroke="rgba(0, 245, 255, 0.12)" stroke-width="1.5" fill="none" />
+                <path d="M 330,70 L 260,70 L 260,130" stroke="rgba(139, 92, 246, 0.12)" stroke-width="1.5" fill="none" />
+                <path d="M 70,330 L 120,330 L 120,290" stroke="rgba(0, 245, 255, 0.12)" stroke-width="1.5" fill="none" />
+                <!-- CPU Socket outlines -->
+                <rect x="150" y="100" width="100" height="100" rx="6" fill="#0d1127" stroke="#374151" stroke-width="1.5" stroke-dasharray="3,3" />
+                <!-- PCIe Slot outline -->
+                <rect x="80" y="270" width="240" height="12" rx="2" fill="#1f2937" stroke="#374151" stroke-width="1" />
+              </g>
+              
+              <!-- CPU Processor -->
+              <g id="part-cpu" class="assembly-part hidden">
+                <rect x="160" y="110" width="80" height="80" rx="6" fill="#1f2937" stroke="#00F5FF" stroke-width="1.5" />
+                <rect x="175" y="125" width="50" height="50" rx="4" fill="#090d16" stroke="#8B5CF6" stroke-width="1" />
+                <path d="M 185,145 L 215,145" stroke="#00F5FF" stroke-width="2" />
+                <path d="M 185,155 L 205,155" stroke="#8B5CF6" stroke-width="2" />
+              </g>
+              
+              <!-- Memory RAM Sticks -->
+              <g id="part-ram" class="assembly-part hidden">
+                <rect x="270" y="100" width="10" height="100" rx="1.5" fill="#1f2937" stroke="#8B5CF6" stroke-width="1" />
+                <rect x="273" y="105" width="4" height="90" fill="#00F5FF" opacity="0.8" class="rgb-glow-bar-1" />
+                
+                <rect x="285" y="100" width="10" height="100" rx="1.5" fill="#1f2937" stroke="#8B5CF6" stroke-width="1" />
+                <rect x="288" y="105" width="4" height="90" fill="#8B5CF6" opacity="0.8" class="rgb-glow-bar-2" />
+              </g>
+              
+              <!-- NVMe SSD Storage -->
+              <g id="part-ssd" class="assembly-part hidden">
+                <rect x="160" y="225" width="80" height="18" rx="2" fill="#111827" stroke="#10B981" stroke-width="1" />
+                <rect x="165" y="228" width="15" height="12" fill="#1f2937" />
+                <rect x="185" y="228" width="15" height="12" fill="#1f2937" />
+              </g>
+              
+              <!-- GPU Graphics Card -->
+              <g id="part-gpu" class="assembly-part hidden">
+                <rect x="70" y="250" width="260" height="52" rx="4" fill="#0f172a" stroke="#8B5CF6" stroke-width="1.5" />
+                <rect x="80" y="255" width="240" height="42" rx="2" fill="#020617" />
+                <circle cx="150" cy="276" r="14" fill="none" stroke="#1e293b" stroke-width="2" />
+                <circle cx="250" cy="276" r="14" fill="none" stroke="#1e293b" stroke-width="2" />
+                <path d="M 85,276 L 315,276" stroke="#00F5FF" stroke-width="2.5" class="electric-line" />
+              </g>
+              
+              <!-- CPU Cooler Rings & Fan Blades -->
+              <g id="part-cooler" class="assembly-part hidden">
+                <circle cx="200" cy="150" r="42" fill="none" stroke="#1f2937" stroke-width="3" />
+                <circle cx="200" cy="150" r="38" fill="none" stroke="url(#rgb-gradient)" stroke-width="3" class="spinning-rgb-ring" />
+                <g id="cooler-fan-blades">
+                  <path d="M 200,150 L 200,118 A 12,12 0 0,1 212,126 Z" fill="rgba(255,255,255,0.15)" />
+                  <path d="M 200,150 L 232,150 A 12,12 0 0,1 224,162 Z" fill="rgba(255,255,255,0.15)" />
+                  <path d="M 200,150 L 200,182 A 12,12 0 0,1 188,174 Z" fill="rgba(255,255,255,0.15)" />
+                  <path d="M 200,150 L 168,150 A 12,12 0 0,1 176,138 Z" fill="rgba(255,255,255,0.15)" />
+                </g>
+                <circle cx="200" cy="150" r="8" fill="#090d16" stroke="#00F5FF" stroke-width="1.5" />
+              </g>
+              
+              <!-- Electric PSU Cables -->
+              <g id="part-cables" class="assembly-part hidden">
+                <path d="M 50,200 L 150,200" stroke="#00F5FF" stroke-width="1.5" stroke-dasharray="3,3" class="cable-flow" />
+                <path d="M 350,200 L 250,200" stroke="#8B5CF6" stroke-width="1.5" stroke-dasharray="3,3" class="cable-flow" />
+              </g>
+            </svg>
+        </div>
+        
+        <!-- Loading status message -->
+        <div id="loader-status" class="loader-status-text">Initializing Hardware...</div>
+        
+        <!-- Premium RGB Progress Bar -->
+        <div class="loader-progress-wrap mt-3">
+            <div id="loader-progress-bar" class="loader-progress-bar"></div>
+        </div>
+        
+        <!-- Animated loading percentage -->
+        <div id="loader-percentage" class="loader-percentage-text mt-2">0%</div>
+    </div>
+</div>
+
+<script src="{% static 'js/loader.js' %}"></script>

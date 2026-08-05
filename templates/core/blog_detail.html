@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ blog.title }} - RIGBUILDER Hardware Blog{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="col-lg-9 mx-auto">
+        <a href="{% url 'blog_list' %}" class="small text-gradient text-decoration-none mb-3 d-inline-block"><i class="fa-solid fa-arrow-left me-2"></i>Back to Blog</a>
+        
+        <div class="glass-panel p-4 border border-secondary-subtle mb-4">
+            <h1 class="fw-bold text-light mb-2">{{ blog.title }}</h1>
+            <p class="text-secondary small border-bottom border-secondary pb-3 mb-4">
+                Published on: {{ blog.created_at|date:"Y-m-d" }} &bull; Author: <b>{{ blog.author.username }}</b>
+            </p>
+
+            {% if blog.image %}
+                <div class="mb-4 text-center rounded-3 overflow-hidden" style="max-height: 400px;">
+                    <img src="{{ blog.image.url }}" alt="{{ blog.title }}" class="img-fluid w-100" style="object-fit: cover;">
+                </div>
+            {% endif %}
+
+            <div class="text-secondary leading-relaxed small fs-6">
+                {{ blog.content|linebreaks }}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

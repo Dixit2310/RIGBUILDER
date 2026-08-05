@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Frequently Asked Questions - RIGBUILDER{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Accordion custom styling matching NZXT premium glassmorphism theme */
+    .glass-accordion {
+        background: rgba(15, 23, 42, 0.45);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        border-radius: 16px !important;
+        overflow: hidden;
+    }
+
+    .faq-item {
+        transition: all 0.25s ease;
+    }
+
+    .faq-item:hover {
+        background: rgba(255, 255, 255, 0.02) !important;
+    }
+
+    .accordion-button {
+        box-shadow: none !important;
+        padding: 1.25rem 1.5rem !important;
+        transition: all 0.25s ease !important;
+        border: none !important;
+    }
+
+    .accordion-button:not(.collapsed) {
+        background-color: rgba(6, 182, 212, 0.08) !important; /* cyan glow background */
+        color: #06b6d4 !important; /* active text turns cyan */
+    }
+
+    /* Custom chevron rotate icon */
+    .accordion-button::after {
+        background-image: none !important;
+        font-family: "Font Awesome 6 Free";
+        font-weight: 900;
+        content: "\f078"; /* fa-chevron-down */
+        color: #64748b;
+        transition: transform 0.25s ease;
+        width: auto;
+        height: auto;
+        font-size: 0.85rem;
+    }
+
+    .accordion-button:not(.collapsed)::after {
+        color: #06b6d4 !important;
+        transform: rotate(-180deg);
+    }
+
+    .accordion-body {
+        padding: 1.25rem 1.5rem !important;
+        line-height: 1.6;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    /* Custom badge colors */
+    .badge-category {
+        background: rgba(255, 255, 255, 0.06);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: #94a3b8;
+        font-weight: 500;
+        font-size: 0.75rem;
+        transition: all 0.25s ease;
+    }
+
+    .accordion-button:not(.collapsed) .badge-category {
+        background: rgba(6, 182, 212, 0.15) !important;
+        border-color: rgba(6, 182, 212, 0.3) !important;
+        color: #06b6d4 !important;
+    }
+
+    /* Search bar styling */
+    .search-container input {
+        background-color: rgba(15, 23, 42, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
+        transition: all 0.3s ease;
+    }
+
+    .search-container input:focus {
+        border-color: #06b6d4 !important;
+        box-shadow: 0 0 10px rgba(6, 182, 212, 0.25) !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="col-lg-8 mx-auto">
+        <!-- Title -->
+        <h2 class="fw-bold mb-2 text-center text-light">Frequently Asked <span class="text-gradient">Questions</span></h2>
+        <p class="text-secondary text-center small mb-5">Have a question about building, compatibility, or ordering? Find answers below.</p>
+        
+        <!-- Interactive Search Bar -->
+        <div class="search-container mb-4 position-relative">
+            <input type="text" id="faqSearchInput" class="form-control form-control-lg text-light px-4 rounded-pill" placeholder="Search questions or keywords...">
+            <i class="fa-solid fa-magnifying-glass position-absolute top-50 end-0 translate-middle-y me-4 text-secondary"></i>
+        </div>
+
+        <!-- Category Filtering Pills -->
+        <div class="d-flex flex-wrap justify-content-center gap-2 mb-4">
+            <button class="btn btn-premium btn-sm px-3 filter-btn active" data-category="ALL">All Topics</button>
+            <button class="btn btn-outline-light btn-sm px-3 filter-btn" data-category="GENERAL">General</button>
+            <button class="btn btn-outline-light btn-sm px-3 filter-btn" data-category="COMPATIBILITY">Compatibility</button>
+            <button class="btn btn-outline-light btn-sm px-3 filter-btn" data-category="SHIPPING">Shipping</button>
+            <button class="btn btn-outline-light btn-sm px-3 filter-btn" data-category="PAYMENT">Payments</button>
+            <button class="btn btn-outline-light btn-sm px-3 filter-btn" data-category="WARRANTY">Warranty</button>
+        </div>
+
+        <!-- FAQs Accordion -->
+        <div class="accordion accordion-flush glass-accordion p-2" id="faqAccordion">
+            {% for faq in faqs %}
+                <div class="accordion-item bg-transparent text-light border-bottom border-secondary-subtle faq-item" data-category="{{ faq.category }}">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button collapsed bg-transparent text-light fw-bold faq-question" type="button" data-bs-toggle="collapse" data-bs-target="#flush-{{ faq.id }}">
+                            <span class="badge badge-category me-2">{{ faq.get_category_display }}</span>
+                            <span class="question-text">{{ faq.question }}</span>
+                        </button>
+                    </h2>
+                    <div id="flush-{{ faq.id }}" class="accordion-collapse collapse" data-bs-parent="#faqAccordion">
+                        <div class="accordion-body text-secondary small faq-answer">{{ faq.answer }}</div>
+                    </div>
+                </div>
+            {% empty %}
+                <div id="emptyState" class="text-center py-5">
+                    <i class="fa-solid fa-circle-question fs-1 text-secondary mb-3 opacity-50"></i>
+                    <p class="text-secondary mb-0">No FAQ entries available at this moment.</p>
+                </div>
+            {% endfor %}
+
+            <!-- Dynamic Search No Results State -->
+            <div id="noFaqResults" class="text-center py-5 d-none">
+                <i class="fa-solid fa-magnifying-glass fs-1 text-secondary mb-3 opacity-50"></i>
+                <p class="text-secondary mb-0">No matching questions found.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const searchInput = document.getElementById("faqSearchInput");
+        const filterButtons = document.querySelectorAll(".filter-btn");
+        const faqItems = document.querySelectorAll(".faq-item");
+        const noResults = document.getElementById("noFaqResults");
+        const emptyState = document.getElementById("emptyState");
+        
+        let activeCategory = "ALL";
+        let searchQuery = "";
+        
+        function filterFAQs() {
+            let visibleCount = 0;
+            
+            faqItems.forEach(item => {
+                const category = item.getAttribute("data-category");
+                const question = item.querySelector(".question-text").innerText.toLowerCase();
+                const answer = item.querySelector(".faq-answer").innerText.toLowerCase();
+                
+                const matchesCategory = activeCategory === "ALL" || category === activeCategory;
+                const matchesSearch = question.includes(searchQuery) || answer.includes(searchQuery);
+                
+                if (matchesCategory && matchesSearch) {
+                    item.classList.remove("d-none");
+                    visibleCount++;
+                } else {
+                    item.classList.add("d-none");
+                }
+            });
+            
+            // Toggle no results container
+            if (faqItems.length > 0) {
+                if (visibleCount === 0) {
+                    noResults.classList.remove("d-none");
+                } else {
+                    noResults.classList.add("d-none");
+                }
+            }
+        }
+        
+        // Listen for search input
+        if (searchInput) {
+            searchInput.addEventListener("input", function() {
+                searchQuery = this.value.toLowerCase().trim();
+                filterFAQs();
+            });
+        }
+        
+        // Listen for filter buttons
+        filterButtons.forEach(btn => {
+            btn.addEventListener("click", function() {
+                // Update active buttons state
+                filterButtons.forEach(b => {
+                    b.classList.remove("active", "btn-primary");
+                    b.classList.add("btn-outline-light");
+                });
+                
+                this.classList.add("active", "btn-primary");
+                this.classList.remove("btn-outline-light");
+                
+                activeCategory = this.getAttribute("data-category");
+                filterFAQs();
+            });
+        });
+    });
+</script>
+{% endblock %}

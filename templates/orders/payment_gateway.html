@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Simulated Payment Gateway - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="col-lg-6 mx-auto glass-panel p-5 border border-secondary-subtle text-center">
+        <div class="mb-4">
+            <span class="fs-1 text-gradient"><i class="fa-solid fa-credit-card animate-pulse"></i></span>
+            <h3 class="fw-bold text-light mt-3">Gateway Payment Simulation</h3>
+            <p class="text-secondary small">You are completing a sandbox test transaction for Order: <b>{{ order.order_number }}</b></p>
+        </div>
+
+        <div class="card bg-dark border-secondary p-4 text-start text-light mb-4">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-secondary">Selected Method:</span>
+                <span class="fw-bold text-gradient">{{ method|upper }} Sandbox</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2">
+                <span class="text-secondary">Amount Payable:</span>
+                <span class="fw-bold text-light">{{ order.country.currency.symbol }} {{ order.grand_total_local }}</span>
+            </div>
+            <div class="d-flex justify-content-between">
+                <span class="text-secondary">Billing Email:</span>
+                <span class="text-secondary">{{ order.email }}</span>
+            </div>
+        </div>
+
+        <div class="alert alert-info glass-panel border border-info-subtle text-light small text-start mb-4">
+            <i class="fa-solid fa-circle-info text-info me-2"></i> This is a simulated checkout screen. Click <b>Success</b> to confirm the purchase and subtract stock, or click <b>Decline</b> to simulate a payment rejection.
+        </div>
+
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{% url 'payment_success' order.order_number %}?method={{ method }}" class="btn btn-premium px-4 py-2 rounded-pill"><i class="fa-solid fa-circle-check me-2"></i>Authorize Payment (Success)</a>
+            <a href="{% url 'cart' %}" class="btn btn-outline-danger px-4 py-2"><i class="fa-solid fa-circle-xmark me-2"></i>Decline (Cancel)</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

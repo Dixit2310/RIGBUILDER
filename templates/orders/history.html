@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order History - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="fw-bold mb-4"><i class="fa-solid fa-clock-rotate-left text-gradient me-2"></i>Order History</h2>
+    
+    {% if orders %}
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="glass-panel p-4 border border-secondary-subtle">
+                    <div class="table-responsive">
+                        <table class="table table-dark table-hover align-middle mb-0">
+                            <thead>
+                                <tr class="text-secondary">
+                                    <th scope="col" style="border-bottom-color: var(--glass-border);">Order #</th>
+                                    <th scope="col" style="border-bottom-color: var(--glass-border);">Date</th>
+                                    <th scope="col" style="border-bottom-color: var(--glass-border);">Amount</th>
+                                    <th scope="col" style="border-bottom-color: var(--glass-border);">Status</th>
+                                    <th scope="col" style="border-bottom-color: var(--glass-border);" class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in orders %}
+                                    <tr>
+                                        <td>
+                                            <span class="fw-bold text-light">{{ order.order_number }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-secondary">{{ order.created_at|date:"Y-m-d H:i" }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="text-gradient fw-bold">{{ order.country.currency.symbol }} {{ order.grand_total_local }}</span>
+                                        </td>
+                                        <td>
+                                            <span class="badge {% if order.status == 'DELIVERED' %}bg-success{% elif order.status == 'CANCELLED' %}bg-danger{% else %}bg-info{% endif %}">
+                                                {{ order.get_status_display }}
+                                            </span>
+                                        </td>
+                                        <td class="text-end">
+                                            <div class="d-flex justify-content-end gap-2 align-items-center">
+                                                <a href="{% url 'order_tracking' order.order_number %}" class="btn btn-outline-info btn-sm px-3">Track</a>
+                                                <a href="{% url 'invoice_download' order.order_number %}" class="btn btn-outline-light btn-sm rounded-circle" target="_blank"><i class="fa-solid fa-file-pdf"></i></a>
+                                                {% if order.is_cancellable %}
+                                                    <a href="{% url 'cancel_order' order.order_number %}" 
+                                                       class="btn btn-outline-danger btn-sm px-3"
+                                                       onclick="return confirm('{% if order.restocking_fee_applies %}Warning: A 15% restocking fee applies once unboxed or after 24 hours have passed. Are you sure you want to cancel?{% else %}Are you sure you want to cancel this order for a full refund?{% endif %}')">
+                                                        Cancel
+                                                    </a>
+                                                {% endif %}
+                                                <a href="{% url 'reorder' order.id %}" class="btn btn-premium btn-sm px-3">Reorder</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="text-center py-5 glass-panel border border-secondary-subtle">
+            <i class="fa-solid fa-folder-open text-secondary display-3 mb-3"></i>
+            <h4 class="fw-bold text-light">No Previous Orders</h4>
+            <p class="text-secondary mb-4">You have not completed any transaction orders yet.</p>
+            <a href="{% url 'catalog' %}" class="btn btn-premium px-4 rounded-pill">Shop Now</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

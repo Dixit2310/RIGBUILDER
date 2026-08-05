@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sign Up - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="col-md-6 mx-auto">
+        <div class="glass-panel p-5 border border-secondary-subtle">
+            <div class="text-center mb-4">
+                <i class="fa-solid fa-user-plus text-gradient fs-1 mb-2"></i>
+                <h3 class="fw-bold text-light">Create Account</h3>
+                <p class="text-secondary small">Register to save build specifications and unlock discounts.</p>
+            </div>
+            
+            <form method="POST">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                    <div class="alert alert-danger border-danger-subtle bg-danger-subtle text-danger py-2 px-3 rounded-3 small mb-3">
+                        <ul class="mb-0 ps-3">
+                            {% for field, errors in form.errors.items %}
+                                {% for error in errors %}
+                                    <li>{% if field != '__all__' %}<strong>{{ field|title }}</strong>: {% endif %}{{ error }}</li>
+                                {% endfor %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endif %}
+                
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Username</label>
+                        {{ form.username }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Email Address</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">First Name</label>
+                        {{ form.first_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Last Name</label>
+                        {{ form.last_name }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-secondary">Phone Number</label>
+                        {{ form.phone_number }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Create Password</label>
+                        {{ form.password }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Confirm Password</label>
+                        {{ form.confirm_password }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-secondary">Referral Code (Optional)</label>
+                        {{ form.referral_code_used }}
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-premium w-100 py-2 mt-4 mb-3 rounded-pill">Register Now</button>
+                <div class="text-center">
+                    <span class="text-secondary small">Already have an account? <a href="{% url 'login' %}" class="text-gradient text-decoration-none fw-bold">Sign In</a></span>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

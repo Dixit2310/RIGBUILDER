@@ -1,0 +1,177 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Custom PC Builder - Build Your Ultimate Gaming Desktop Rig{% endblock %}
+
+{% block content %}
+<!-- Premium Cyberpunk Hero Banner -->
+<div class="container my-4">
+    <div class="row align-items-center py-5 px-4 rounded-4 glass-panel border border-secondary-subtle" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.9) 0%, rgba(9, 13, 22, 0.95) 100%);" class="hero-premium-card">
+        <div class="col-lg-6 mb-4 mb-lg-0">
+            <span class="badge bg-primary rounded-pill px-3 py-2 mb-3 fw-bold letter-spacing">NEXT-GEN BUILD GENERATOR</span>
+            <h1 class="display-4 fw-extrabold text-light mb-3">BUILD YOUR ULTIMATE <span class="text-gradient">GAMING RIG</span></h1>
+            <p class="text-secondary leading-relaxed fs-5 mb-4">Choose compatible processors, graphic cards, RAMs, and enclosures with our live compatibility check and power budget calculator. Instantly check estimated FPS, bottlenecks, and temperatures.</p>
+            <div class="d-flex flex-wrap gap-3">
+                <a href="{% url 'builder' %}" class="btn btn-premium btn-lg rounded-pill"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Configure Workspace</a>
+                <a href="{% url 'ai_recommend' %}" class="btn btn-outline-light btn-lg rounded-pill"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>AI Recommendation</a>
+            </div>
+        </div>
+        <div class="col-lg-6 text-center">
+            <!-- Sleek Isometric PC Case Mockup Container -->
+            <div class="position-relative p-4">
+                <div class="position-absolute top-50 start-50 translate-middle bg-primary rounded-circle filter blur" style="width: 250px; height: 250px; opacity: 0.15; z-index: 1;"></div>
+                <!-- Real Corsair PC Case Image Mockup -->
+                <img src="https://images.unsplash.com/photo-1587202372775-e229f172b9d7?auto=format&fit=crop&w=600&q=80" alt="Corsair Glass Case PC" class="img-fluid rounded-4 position-relative z-2 border border-secondary shadow-lg animate-pulse" style="max-height: 400px; object-fit: cover;">
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Component Categories Matrix -->
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Browse Components by <span class="text-gradient">Category</span></h2>
+        <p class="text-secondary">Individually pick parts to complete or upgrade your current workstation desktop setup.</p>
+    </div>
+    
+    <div class="row row-cols-2 row-cols-md-3 row-cols-lg-6 g-3">
+        {% for category in categories %}
+            <div class="col">
+                <a href="{% url 'catalog' %}?category={{ category.slug }}" class="text-decoration-none">
+                    <div class="glass-panel p-3 text-center border border-secondary-subtle h-100 hover-scale" style="transition: var(--transition);">
+                        <div class="fs-2 text-gradient mb-2">
+                            {% if category.name == 'CPU' %}<i class="fa-solid fa-microchip"></i>
+                            {% elif category.name == 'Motherboard' %}<i class="fa-solid fa-chess-board"></i>
+                            {% elif category.name == 'GPU' %}<i class="fa-solid fa-mobile-screen-button"></i>
+                            {% elif category.name == 'RAM' %}<i class="fa-solid fa-memory"></i>
+                            {% elif category.name == 'Cabinet' %}<i class="fa-solid fa-box"></i>
+                            {% else %}<i class="fa-solid fa-hard-drive"></i>
+                            {% endif %}
+                        </div>
+                        <h6 class="fw-bold text-light mb-1">{{ category.name }}</h6>
+                        <span class="text-secondary small">{{ category.products.count }} Products</span>
+                    </div>
+                </a>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Swiper Presets builds Carousel -->
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h2 class="fw-bold">Signature Preset <span class="text-gradient">RIGS</span></h2>
+            <p class="text-secondary mb-0">Pre-configured setups designed by experts, categorized by budget and target performance.</p>
+        </div>
+        <a href="{% url 'presets_list' %}" class="btn btn-outline-light px-4 btn-sm d-none d-md-block">View All Presets</a>
+    </div>
+
+    <!-- Swiper Container -->
+    <div class="swiper presetSwiper">
+        <div class="swiper-wrapper py-3">
+            {% for preset in presets %}
+                <div class="swiper-slide">
+                    <div class="glass-panel p-4 border border-secondary-subtle h-100 d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex justify-content-between align-items-start mb-3">
+                                <h4 class="fw-bold mb-0 text-light">{{ preset.name }}</h4>
+                                <span class="badge bg-info">{{ preset.get_build_type_display }}</span>
+                            </div>
+                            <ul class="list-unstyled text-secondary small mb-4">
+                                <li><i class="fa-solid fa-circle-nodes text-gradient me-2"></i>CPU: {{ preset.cpu.name|default:"TBD" }}</li>
+                                <li><i class="fa-solid fa-microchip text-gradient me-2"></i>GPU: {{ preset.gpu.name|default:"Integrated" }}</li>
+                                <li><i class="fa-solid fa-memory text-gradient me-2"></i>RAM: {{ preset.ram.name|default:"TBD" }}</li>
+                                <li><i class="fa-solid fa-power-off text-gradient me-2"></i>PSU: {{ preset.psu.name|default:"TBD" }}</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <span class="text-secondary small">Est. Total:</span>
+                                <h4 class="text-gradient fw-bold mb-0">{% convert_price preset.calculate_total_price_usd %}</h4>
+                            </div>
+                            <a href="{% url 'load_preset' preset.id %}" class="btn btn-premium w-100 rounded-pill"><i class="fa-solid fa-upload me-2"></i>Load Config</a>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="swiper-slide text-center py-5">
+                    <p class="text-secondary">No presets pre-configured in database. Please seed components.</p>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="swiper-pagination"></div>
+    </div>
+</div>
+
+<!-- Featured Products Section -->
+<div class="container my-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Top Selling <span class="text-gradient">Components</span></h2>
+        <p class="text-secondary">Explore trending computer components with highest custom review ratings.</p>
+    </div>
+    
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4">
+        {% for product in featured_products %}
+            <div class="col">
+                <div class="product-card">
+                    <div>
+                        <div class="position-relative text-center mb-3 overflow-hidden rounded-3 bg-dark p-2" style="height: 180px;">
+                            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid h-100" style="object-fit: contain;">
+                            {% if product.discount_percentage > 0 %}
+                                <span class="position-absolute top-0 start-0 badge bg-danger m-2">-{{ product.discount_percentage }}%</span>
+                            {% endif %}
+                        </div>
+                        <span class="text-secondary small fw-semibold">{{ product.brand.name }} &bull; {{ product.category.name }}</span>
+                        <h6 class="fw-bold text-light text-truncate mt-1">{{ product.name }}</h6>
+                        <div class="d-flex align-items-center gap-1 mb-2">
+                            <span class="text-warning small"><i class="fa-solid fa-star"></i></span>
+                            <span class="small text-light">{{ product.rating }}</span>
+                            <span class="small text-secondary">({{ product.reviews.count }} reviews)</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div>
+                                {% if product.discount_percentage > 0 %}
+                                    <span class="text-secondary small text-decoration-line-through">{% convert_price product.original_price_usd %}</span>
+                                {% endif %}
+                                <h5 class="text-gradient fw-bold mb-0">{% convert_price product.final_price_usd %}</h5>
+                            </div>
+                            <form action="{% url 'cart_add' product.id %}" method="POST">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-outline-light btn-sm rounded-circle" style="width: 36px; height: 36px; padding: 0;">
+                                    <i class="fa-solid fa-plus"></i>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-secondary">No featured components found. Populate database models.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Initialize Swiper carousel for builds presets
+    var swiper = new Swiper(".presetSwiper", {
+        slidesPerView: 1,
+        spaceBetween: 20,
+        pagination: {
+            el: ".swiper-pagination",
+            clickable: true,
+        },
+        breakpoints: {
+            640: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 }
+        }
+    });
+</script>
+{% endblock %}

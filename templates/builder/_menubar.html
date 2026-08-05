@@ -1,0 +1,16 @@
+<div class="builder-menubar-container">
+    <div class="builder-menubar">
+        <a href="{% url 'builder' %}" class="builder-menu-item {% if request.resolver_match.url_name == 'builder' %}active{% endif %}">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            <span>Configurator Workspace</span>
+        </a>
+        <a href="{% url 'ai_recommend' %}" class="builder-menu-item {% if request.resolver_match.url_name == 'ai_recommend' %}active{% endif %}">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>AI Rig Advisor</span>
+        </a>
+        <a href="{% url 'presets_list' %}" class="builder-menu-item {% if request.resolver_match.url_name == 'presets_list' or request.resolver_match.url_name == 'load_preset' %}active{% endif %}">
+            <i class="fa-solid fa-gem"></i>
+            <span>Signature Presets</span>
+        </a>
+    </div>
+</div>

@@ -1,0 +1,559 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}AI Build recommendation - RIGBUILDER{% endblock %}
+
+{% block body_class %}ai-recommend-page{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Premium Glow & Scrollbar Styling for the Advisor Chat */
+    #page-chatbot-body::-webkit-scrollbar {
+        width: 6px;
+    }
+    #page-chatbot-body::-webkit-scrollbar-track {
+        background: rgba(14, 14, 16, 0.1);
+    }
+    #page-chatbot-body::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, var(--neon-teal) 0%, var(--neon-purple) 100%);
+        border-radius: 3px;
+    }
+    .chatbot-header {
+        border-top-left-radius: 19px;
+        border-top-right-radius: 19px;
+        border-top: 3px solid #2dd4bf;
+        background: linear-gradient(135deg, rgba(20, 184, 166, 0.12) 0%, rgba(139, 92, 246, 0.05) 50%, rgba(20, 20, 25, 0.95) 100%) !important;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1), 0 4px 20px rgba(0, 0, 0, 0.25) !important;
+        border-bottom: 1px solid rgba(6, 182, 212, 0.3) !important;
+        padding: 24px 28px !important;
+    }
+    .chatbot-header::after {
+        display: none !important;
+    }
+    @keyframes avatarPulse {
+        0%, 100% { transform: scale(1); filter: brightness(1); }
+        50% { transform: scale(1.05); filter: brightness(1.2); }
+    }
+    .chatbot-header .chatbot-header-avatar {
+        animation: avatarPulse 2.5s infinite ease-in-out;
+        background: rgba(255, 255, 255, 0.03) !important;
+        border: 1px solid rgba(45, 212, 191, 0.3) !important;
+        color: var(--neon-teal) !important;
+        box-shadow: 0 0 12px rgba(20, 184, 166, 0.15) !important;
+    }
+    .chatbot-header .chatbot-header-status-dot {
+        box-shadow: 0 0 8px #10b981;
+    }
+    .chatbot-header-info {
+        display: flex !important;
+        align-items: center !important;
+        gap: 14px !important;
+    }
+    .chatbot-header-title {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 2px !important;
+    }
+    .chatbot-footer {
+        border-bottom-left-radius: 19px;
+        border-bottom-right-radius: 19px;
+    }
+    
+    /* Glowing card border on chatbot focus */
+    .chatbot-container-card {
+        transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    }
+    .chatbot-container-card:hover {
+        box-shadow: 0 15px 45px rgba(6, 182, 212, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important;
+        border-color: rgba(6, 182, 212, 0.3) !important;
+    }
+    
+    /* Hover micro-animation for avatars */
+    .chatbot-msg-avatar {
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+    .chat-msg:hover .chatbot-msg-avatar {
+        transform: scale(1.1) rotate(5deg);
+    }
+    
+    /* Soft cyan/teal shadow under Bot messages */
+    .chat-msg-bot .chat-msg-text {
+        box-shadow: 0 4px 15px rgba(20, 184, 166, 0.04);
+    }
+
+    /* Header text-gradient pulsing */
+    @keyframes textGlow {
+        0%, 100% { text-shadow: 0 0 10px rgba(6, 182, 212, 0.2); }
+        50% { text-shadow: 0 0 20px rgba(6, 182, 212, 0.6); }
+    }
+    .text-gradient {
+        animation: textGlow 3s infinite;
+    }
+    
+    /* Interactive Quick Action Chips */
+    .chatbot-chips-container {
+        padding: 15px 28px !important;
+        background: rgba(14, 14, 16, 0.4) !important;
+    }
+    .chat-chip {
+        background: rgba(255, 255, 255, 0.02) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: var(--text-secondary) !important;
+        font-weight: 500 !important;
+        letter-spacing: 0.2px;
+        border-radius: 12px !important;
+        padding: 8px 16px !important;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .chat-chip:hover {
+        background: rgba(6, 182, 212, 0.08) !important;
+        border-color: rgba(6, 182, 212, 0.4) !important;
+        color: var(--neon-teal) !important;
+        transform: translateY(-3px) scale(1.03);
+        box-shadow: 0 5px 15px rgba(6, 182, 212, 0.15) !important;
+    }
+    
+    /* Input element updates */
+    .chatbot-footer {
+        padding: 18px 28px !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 12px !important;
+    }
+    .chatbot-input {
+        height: 48px !important;
+        background: rgba(0, 0, 0, 0.4) !important;
+        border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        color: var(--text-primary) !important;
+        padding: 0 20px !important;
+        font-size: 0.9rem !important;
+        border-radius: 14px !important;
+        outline: none !important;
+        transition: all 0.3s ease !important;
+    }
+    .chatbot-input:focus {
+        border-color: rgba(6, 182, 212, 0.6) !important;
+        box-shadow: 0 0 15px rgba(6, 182, 212, 0.25) !important;
+        background: rgba(0, 0, 0, 0.5) !important;
+    }
+    .chatbot-send-btn {
+        width: 48px !important;
+        height: 48px !important;
+        border-radius: 14px !important;
+        box-shadow: 0 4px 14px rgba(6, 182, 212, 0.3) !important;
+    }
+    .chatbot-send-btn:hover {
+        transform: translateY(-2px) scale(1.05) !important;
+        box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5) !important;
+    }
+    .chatbot-send-btn i {
+        transition: transform 0.3s ease;
+    }
+    .chatbot-send-btn:hover i {
+        transform: translate(2px, -2px) scale(1.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    {% include 'builder/_menubar.html' %}
+    
+    <div class="row g-4 mt-2">
+        <!-- Left: AI Rig Advisor Form Card -->
+        <div class="col-lg-6">
+            <div class="glass-panel p-5 border border-secondary-subtle d-flex flex-column justify-content-between" style="height: 600px;">
+                <div>
+                    <div class="text-center mb-4">
+                        <i class="fa-solid fa-wand-magic-sparkles text-gradient fs-1 mb-2"></i>
+                        <h3 class="fw-bold text-light">AI Rig Advisor</h3>
+                        <p class="text-secondary small">Generate an optimized, fully compatible custom computer build instantly based on your budget and primary tasks.</p>
+                    </div>
+                    
+                    <form method="POST" id="advisor-form">
+                        {% csrf_token %}
+                        
+                        <!-- Target Budget Input -->
+                        <div class="mb-4">
+                            <label class="form-label small text-secondary d-flex justify-content-between">
+                                <span>Target Budget ({% currency_code %}):</span>
+                                <span id="budgetValue" class="fw-bold text-gradient">{% currency_symbol %}{{ slider_val }}</span>
+                            </label>
+                            <input type="range" name="budget" id="budgetRange" class="form-range" min="{{ slider_min }}" max="{{ slider_max }}" step="{{ slider_step }}" value="{{ slider_val }}">
+                            <div class="d-flex justify-content-between text-secondary small" style="font-size: 0.75rem;">
+                                <span>{% currency_symbol %}{{ slider_min }} (Entry)</span>
+                                <span>{% currency_symbol %}{{ slider_max }} (Enthusiast)</span>
+                            </div>
+                        </div>
+
+                        <!-- Primary Task Focus Input -->
+                        <div class="mb-4">
+                            <label class="form-label small text-secondary">Primary Desktop Task</label>
+                            <select name="focus" class="form-select bg-dark border-secondary text-light">
+                                <option value="gaming">AAA Gaming & High Refresh Esports</option>
+                                <option value="productivity">3D Rendering / Video Editing / Productivity</option>
+                                <option value="streaming">Streaming & Live Game Broadcasting</option>
+                                <option value="general">Office Work & General Media consumption</option>
+                            </select>
+                        </div>
+
+                        <div class="alert alert-info glass-panel border border-secondary text-light small mb-4">
+                            <i class="fa-solid fa-circle-info text-info me-2"></i> The AI selector analyzes real-time store inventories to pick CPUs, Motherboards, RAM kits, and coolers. All components are mathematically checked for sizing and bracket compatibility.
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-premium w-100 py-2 rounded-pill"><i class="fa-solid fa-wand-magic-sparkles me-2"></i>Generate AI Rig Setup</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Right: Embedded Chatbot AI Advisor Widget -->
+        <div class="col-lg-6">
+            <div class="glass-panel border border-secondary-subtle d-flex flex-column overflow-hidden chatbot-container-card" style="height: 600px;">
+                <!-- Chat Header -->
+                <div class="chatbot-header d-flex justify-content-between align-items-center">
+                    <div class="chatbot-header-info">
+                        <div class="chatbot-header-avatar">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                            <span class="chatbot-header-status-dot"></span>
+                        </div>
+                        <div class="chatbot-header-title">
+                            <h6 class="d-flex align-items-center gap-2 mb-0" style="font-size: 1rem; font-weight: 700;">
+                                <span class="text-gradient">AI RIG ADVISOR CHAT</span>
+                                <span class="badge" style="font-size: 0.65rem; font-weight: 700; background: var(--gradient-primary); border-radius: 4px; padding: 4px 8px; box-shadow: 0 0 10px rgba(6, 182, 212, 0.4); border: none; color: #ffffff !important; -webkit-text-fill-color: #ffffff !important; line-height: 1;"><i class="fa-solid fa-bolt me-1"></i>PRO</span>
+                            </h6>
+                            <span><i class="fa-solid fa-circle text-success" style="font-size: 0.45rem; filter: drop-shadow(0 0 4px #10b981);"></i> Active Hardware Engine</span>
+                        </div>
+                    </div>
+                    <div class="chatbot-header-actions d-flex align-items-center gap-2">
+                        <span class="badge d-none d-sm-inline-flex align-items-center" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2); color: #10b981; font-size: 0.7rem; font-weight: 600; padding: 6px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1;">
+                            <i class="fa-solid fa-signal me-1"></i> Live
+                        </span>
+                        <button type="button" class="btn btn-sm btn-outline-secondary border-0 p-2 text-secondary hover-brightness" style="font-size: 0.95rem; transition: all 0.25s ease;" onclick="clearPageChat()" title="Reset Conversation">
+                            <i class="fa-solid fa-arrow-rotate-left"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Chat Messages Body -->
+                <div id="page-chatbot-body" class="chatbot-body" style="flex-grow: 1; overflow-y: auto;">
+                    <!-- Bot welcome message with avatar layout -->
+                    <div class="chat-msg chat-msg-bot d-flex flex-row align-items-start gap-2 mb-3 w-100">
+                        <div class="chatbot-msg-avatar d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-primary); box-shadow: 0 0 10px rgba(6, 182, 212, 0.4); color: white; font-size: 0.85rem; flex-shrink: 0;">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i>
+                        </div>
+                        <div class="d-flex flex-column" style="max-width: 80%;">
+                            <div class="chat-msg-text">
+                                Welcome to the **AI Rig Advisor Chat**! 🌌 I am here to help you design your dream desktop. You can adjust the budget range and tasks on the left, or chat with me to narrow down specific specs. Click a chip below to start!
+                            </div>
+                            <span class="chat-msg-time">Just now</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input Footer -->
+                <div class="chatbot-footer d-flex gap-2 align-items-center">
+                    <!-- Dropdown side by side with searchbar -->
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2" type="button" id="chatbot-topic-dropdown" data-bs-toggle="dropdown" aria-expanded="false" style="height: 48px; border-radius: 14px; background: rgba(0,0,0,0.4); border: 1px solid var(--glass-border); color: var(--text-secondary); font-size: 0.85rem; padding: 0 16px; transition: all 0.3s ease;">
+                            <i class="fa-solid fa-wand-magic-sparkles text-cyan"></i>
+                            <span class="d-none d-sm-inline">Topic</span>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark border border-secondary" aria-labelledby="chatbot-topic-dropdown" style="background: rgba(14, 14, 16, 0.95); backdrop-filter: blur(15px); border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                            <li><a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 small text-light hover-text-cyan" href="#" onclick="submitPageChip('🎮 AAA Gaming Setup'); return false;"><i class="fa-solid fa-gamepad text-info" style="width: 16px;"></i> Gaming Rig</a></li>
+                            <li><a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 small text-light hover-text-cyan" href="#" onclick="submitPageChip('🛠️ Compatibility Check'); return false;"><i class="fa-solid fa-screwdriver-wrench text-warning" style="width: 16px;"></i> Compatibility</a></li>
+                            <li><a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 small text-light hover-text-cyan" href="#" onclick="submitPageChip('💡 Productivity Rig'); return false;"><i class="fa-solid fa-display text-success" style="width: 16px;"></i> Productivity</a></li>
+                            <li><a class="dropdown-item py-2 px-3 d-flex align-items-center gap-2 small text-light hover-text-cyan" href="#" onclick="submitPageChip('⚡ PSU Wattage Audit'); return false;"><i class="fa-solid fa-plug text-danger" style="width: 16px;"></i> Power TDP</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Search Input -->
+                    <div class="flex-grow-1 position-relative">
+                        <input type="text" id="page-chatbot-input-field" class="chatbot-input w-100" placeholder="Ask AI Rig Advisor..." autocomplete="off" style="padding-right: 54px !important;">
+                        <div style="position: absolute; right: 7px; top: 50%; transform: translateY(-50%); z-index: 10;">
+                            <button type="button" id="page-chatbot-send-btn" class="chatbot-send-btn" style="width: 34px !important; height: 34px !important; border-radius: 10px !important; box-shadow: none !important;">
+                                <i class="fa-solid fa-paper-plane" style="font-size: 0.8rem;"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const range = document.getElementById("budgetRange");
+        const valSpan = document.getElementById("budgetValue");
+        const symbol = "{% currency_symbol %}";
+        
+        range.addEventListener("input", function() {
+            valSpan.innerText = `${symbol}${this.value}`;
+        });
+
+        // Chatbot page implementation
+        const inputField = document.getElementById('page-chatbot-input-field');
+        const sendBtn = document.getElementById('page-chatbot-send-btn');
+        const chatBody = document.getElementById('page-chatbot-body');
+
+        function getFormattedTime() {
+            const now = new Date();
+            let hours = now.getHours();
+            let minutes = now.getMinutes();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12;
+            hours = hours ? hours : 12;
+            minutes = minutes < 10 ? '0'+minutes : minutes;
+            return hours + ':' + minutes + ' ' + ampm;
+        }
+
+        function parseMarkdown(text) {
+            if (!text) return "";
+            
+            // 1. Escape HTML of text to prevent XSS but keep any intended styling tags we generate
+            let html = text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+                
+            // 2. Pre-process code blocks
+            html = html.replace(/```(?:[a-zA-Z0-9]+)?\n([\s\S]*?)\n```/g, '<pre class="bg-dark text-cyan p-2 rounded small"><code>$1</code></pre>');
+            
+            // 3. Inline code
+            html = html.replace(/`([^`]+)`/g, '<code class="bg-dark text-cyan px-1 rounded">$1</code>');
+            
+            // 4. Bold
+            html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+            
+            // 5. Italic
+            html = html.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+            
+            // 6. Headers
+            html = html.replace(/^### (.*?)$/gm, '<h5 class="text-cyan fw-bold mt-3 mb-2">$1</h5>');
+            html = html.replace(/^## (.*?)$/gm, '<h4 class="text-cyan fw-bold mt-3 mb-2">$1</h4>');
+            html = html.replace(/^# (.*?)$/gm, '<h3 class="text-cyan fw-bold mt-3 mb-2">$1</h3>');
+            
+            // 7. Parse Tables
+            const lines = html.split('\n');
+            let inTable = false;
+            let tableRows = [];
+            let outputLines = [];
+            
+            for (let i = 0; i < lines.length; i++) {
+                const line = lines[i].trim();
+                
+                if (line.startsWith('|') && line.endsWith('|')) {
+                    inTable = true;
+                    if (line.match(/^\|[\s\-\|:]+\|$/)) {
+                        continue;
+                    }
+                    const cells = line.split('|')
+                        .map(c => c.trim())
+                        .filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
+                    tableRows.push(cells);
+                } else {
+                    if (inTable) {
+                        let tableHtml = '<div class="table-responsive my-3"><table class="table table-sm table-bordered border-secondary-subtle text-light small" style="background: rgba(0,0,0,0.2);">';
+                        tableRows.forEach((row, rIdx) => {
+                            if (rIdx === 0) {
+                                tableHtml += '<thead><tr class="text-cyan">';
+                                row.forEach(cell => { tableHtml += `<th>${cell}</th>`; });
+                                tableHtml += '</tr></thead><tbody>';
+                            } else {
+                                tableHtml += '<tr>';
+                                row.forEach(cell => { tableHtml += `<td>${cell}</td>`; });
+                                tableHtml += '</tr>';
+                            }
+                        });
+                        tableHtml += '</tbody></table></div>';
+                        outputLines.push(tableHtml);
+                        tableRows = [];
+                        inTable = false;
+                    }
+                    outputLines.push(lines[i]);
+                }
+            }
+            if (inTable && tableRows.length > 0) {
+                let tableHtml = '<div class="table-responsive my-3"><table class="table table-sm table-bordered border-secondary-subtle text-light small" style="background: rgba(0,0,0,0.2);">';
+                tableRows.forEach((row, rIdx) => {
+                    if (rIdx === 0) {
+                        tableHtml += '<thead><tr class="text-cyan">';
+                        row.forEach(cell => { tableHtml += `<th>${cell}</th>`; });
+                        tableHtml += '</tr></thead><tbody>';
+                    } else {
+                        tableHtml += '<tr>';
+                        row.forEach(cell => { tableHtml += `<td>${cell}</td>`; });
+                        tableHtml += '</tr>';
+                    }
+                });
+                tableHtml += '</tbody></table></div>';
+                outputLines.push(tableHtml);
+            }
+            
+            html = outputLines.join('\n');
+            
+            // 8. Lists
+            html = html.replace(/^\s*[\-\*]\s+(.*?)$/gm, '<li class="ms-3">$1</li>');
+            html = html.replace(/(<li class="ms-3">.*<\/li>\n?)+/g, (match) => {
+                return `<ul class="my-2">${match}</ul>`;
+            });
+            
+            html = html.replace(/^\s*\d+\.\s+(.*?)$/gm, '<li class="ms-3 list-decimal">$1</li>');
+            html = html.replace(/(<li class="ms-3 list-decimal">.*<\/li>\n?)+/g, (match) => {
+                return `<ol class="my-2">${match.replace(/list-decimal/g, "")}</ol>`;
+            });
+
+            // 9. Blockquotes
+            html = html.replace(/^\>\s*(.*?)$/gm, '<blockquote class="border-start border-cyan ps-3 my-2 text-secondary">$1</blockquote>');
+            
+            // 10. Newlines to <br>
+            html = html.replace(/\n/g, '<br>');
+            
+            // Restore URL elements
+            html = html.replace(/&lt;a href=(.*?)&gt;(.*?)&lt;\/a&gt;/g, '<a href=$1 class="text-cyan">$2</a>');
+            
+            // Convert markdown links: absolute links open in new tab, relative links open in same tab
+            html = html.replace(/\[(.*?)\]\((.*?)\)/g, (match, text, url) => {
+                const isAbsolute = url.startsWith('http://') || url.startsWith('https://');
+                const target = isAbsolute ? 'target="_blank"' : '';
+                return `<a href="${url}" class="text-cyan" ${target}>${text}</a>`;
+            });
+            
+            return html;
+        }
+
+        function addMessage(text, isUser = false) {
+            const msgDiv = document.createElement('div');
+            
+            let processedText;
+            if (isUser) {
+                processedText = text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+            } else {
+                processedText = parseMarkdown(text);
+            }
+
+            if (isUser) {
+                msgDiv.className = 'chat-msg chat-msg-user d-flex flex-row-reverse align-items-start gap-2 mb-3 w-100 ms-auto';
+                msgDiv.innerHTML = `
+                    <div class="chatbot-msg-avatar d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 8px; background: rgba(255, 255, 255, 0.1); color: white; font-size: 0.85rem; flex-shrink: 0; border: 1px solid var(--glass-border);">
+                        <i class="fa-solid fa-user"></i>
+                    </div>
+                    <div class="d-flex flex-column align-items-end" style="max-width: 80%;">
+                        <div class="chat-msg-text">${processedText}</div>
+                        <span class="chat-msg-time">${getFormattedTime()}</span>
+                    </div>
+                `;
+            } else {
+                msgDiv.className = 'chat-msg chat-msg-bot d-flex flex-row align-items-start gap-2 mb-3 w-100';
+                msgDiv.innerHTML = `
+                    <div class="chatbot-msg-avatar d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-primary); box-shadow: 0 0 10px rgba(6, 182, 212, 0.4); color: white; font-size: 0.85rem; flex-shrink: 0;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div class="d-flex flex-column" style="max-width: 80%;">
+                        <div class="chat-msg-text">${processedText}</div>
+                        <span class="chat-msg-time">${getFormattedTime()}</span>
+                    </div>
+                `;
+            }
+            
+            chatBody.appendChild(msgDiv);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function showTypingIndicator() {
+            const indicator = document.createElement('div');
+            indicator.id = 'page-chatbot-typing-indicator';
+            indicator.className = 'typing-indicator d-flex flex-row align-items-start gap-2 mb-3 w-100';
+            indicator.innerHTML = `
+                <div class="chatbot-msg-avatar d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-primary); box-shadow: 0 0 10px rgba(6, 182, 212, 0.4); color: white; font-size: 0.85rem; flex-shrink: 0;">
+                    <i class="fa-solid fa-wand-magic-sparkles"></i>
+                </div>
+                <div class="d-flex gap-1 align-items-center bg-dark border border-secondary-subtle px-3 py-2" style="border-radius: 18px; border-top-left-radius: 4px;">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                </div>
+            `;
+            chatBody.appendChild(indicator);
+            chatBody.scrollTop = chatBody.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('page-chatbot-typing-indicator');
+            if (indicator) {
+                indicator.remove();
+            }
+        }
+
+        window.submitPageChip = function(text) {
+            inputField.value = text;
+            handleSend();
+        };
+
+        window.clearPageChat = function() {
+            chatBody.innerHTML = `
+                <!-- Bot welcome message with avatar layout -->
+                <div class="chat-msg chat-msg-bot d-flex flex-row align-items-start gap-2 mb-3 w-100">
+                    <div class="chatbot-msg-avatar d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border-radius: 8px; background: var(--gradient-primary); box-shadow: 0 0 10px rgba(6, 182, 212, 0.4); color: white; font-size: 0.85rem; flex-shrink: 0;">
+                        <i class="fa-solid fa-wand-magic-sparkles"></i>
+                    </div>
+                    <div class="d-flex flex-column" style="max-width: 80%;">
+                        <div class="chat-msg-text">
+                            Conversation restarted! 🌌 How can I assist you with your custom desktop build today?
+                        </div>
+                        <span class="chat-msg-time">Just now</span>
+                    </div>
+                </div>
+            `;
+        };
+
+        function handleSend() {
+            const text = inputField.value.trim();
+            if (!text) return;
+
+            addMessage(text, true);
+            inputField.value = '';
+
+            showTypingIndicator();
+            
+            // Get CSRF token from Django template context
+            const csrfToken = '{{ csrf_token }}';
+
+            fetch("/chatbot/api/chat/", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken
+                },
+                body: JSON.stringify({ message: text })
+            })
+            .then(res => res.json())
+            .then(data => {
+                removeTypingIndicator();
+                if (data.reply) {
+                    addMessage(data.reply, false);
+                } else if (data.error) {
+                    addMessage("<span class='text-danger'>Error: " + data.error + "</span>", false);
+                } else {
+                    addMessage("Could not retrieve a reply.", false);
+                }
+            })
+            .catch(err => {
+                removeTypingIndicator();
+                addMessage("<span class='text-danger'>Network error occurred. Please try again.</span>", false);
+            });
+        }
+
+        sendBtn.addEventListener('click', handleSend);
+        inputField.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                handleSend();
+            }
+        });
+    });
+</script>
+{% endblock %}

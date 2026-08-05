@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}My Wishlist - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="fw-bold mb-4">
+        <i class="fa-solid fa-heart text-gradient me-2 animate-pulse"></i>My Wishlist
+    </h2>
+    
+    {% if wishlist_items or pc_builds %}
+        <div class="row g-4">
+            <!-- Wishlisted Components Section -->
+            {% if wishlist_items %}
+                <div class="col-12">
+                    <h5 class="fw-bold text-light mb-3"><i class="fa-solid fa-microchip text-info me-2"></i>Saved Components</h5>
+                    <div class="row row-cols-1 row-cols-md-3 row-cols-lg-4 g-4">
+                        {% for item in wishlist_items %}
+                            <div class="col" id="wishlist-item-{{ item.product.id }}">
+                                <div class="product-card h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="position-relative text-center mb-3 overflow-hidden bg-dark rounded-3 p-2" style="height: 180px;">
+                                            <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="img-fluid h-100" style="object-fit: contain;">
+                                            {% if item.product.discount_percentage > 0 %}
+                                                <span class="position-absolute top-0 start-0 m-2 badge bg-danger">-{{ item.product.discount_percentage }}%</span>
+                                            {% endif %}
+                                            <button onclick="toggleWishlist({{ item.product.id }})" class="btn btn-dark btn-sm rounded-circle position-absolute top-0 end-0 m-2 border border-secondary" title="Remove from Wishlist">
+                                                <i class="fa-solid fa-heart text-danger"></i>
+                                            </button>
+                                        </div>
+                                        <span class="text-secondary small fw-semibold">{{ item.product.brand.name }} &bull; {{ item.product.category.name }}</span>
+                                        <h6 class="fw-bold text-light text-truncate mt-1 mb-1">
+                                            <a href="{% url 'product_detail' item.product.slug %}" class="text-decoration-none text-light">{{ item.product.name }}</a>
+                                        </h6>
+                                        <div class="d-flex align-items-center gap-2 mb-3">
+                                            <span class="text-warning small"><i class="fa-solid fa-star"></i></span>
+                                            <span class="small text-light">{{ item.product.rating }}</span>
+                                            <span class="text-secondary small">|</span>
+                                            {% if item.product.stock > 0 %}
+                                                <span class="text-success small"><i class="fa-solid fa-circle-check me-1"></i>In Stock</span>
+                                            {% else %}
+                                                <span class="text-danger small"><i class="fa-solid fa-circle-xmark me-1"></i>Out of Stock</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div>
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            <div>
+                                                {% if item.product.discount_percentage > 0 %}
+                                                    <span class="text-decoration-line-through text-secondary small d-block">{% convert_price item.product.original_price_usd %}</span>
+                                                {% endif %}
+                                                <h5 class="text-gradient fw-bold mb-0">{% convert_price item.product.final_price_usd %}</h5>
+                                            </div>
+                                            <div class="d-flex gap-2">
+                                                <a href="{% url 'add_to_build' item.product.id %}" class="btn btn-outline-info btn-sm rounded-circle" title="Add to Active Build Slot">
+                                                    <i class="fa-solid fa-plus"></i>
+                                                </a>
+                                                <form action="{% url 'cart_add' item.product.id %}" method="POST">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-premium btn-sm px-3 {% if item.product.stock == 0 %}disabled{% endif %}">Cart</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+            
+            <!-- Wishlisted PC Configurations Section -->
+            {% if pc_builds %}
+                <div class="col-12 mt-5">
+                    <h5 class="fw-bold text-light mb-3"><i class="fa-solid fa-screwdriver-wrench text-gradient me-2"></i>Saved PC Configurations</h5>
+                    <div class="row row-cols-1 row-cols-md-2 g-4">
+                        {% for build in pc_builds %}
+                            <div class="col" id="wishlist-build-{{ build.id }}">
+                                <div class="glass-panel p-4 border border-secondary-subtle h-100 d-flex flex-column justify-content-between">
+                                    <div>
+                                        <div class="d-flex justify-content-between align-items-start mb-3">
+                                            <div>
+                                                <h5 class="fw-bold text-light mb-1">{{ build.name }}</h5>
+                                                <span class="text-secondary small">Custom PC Build ({{ build.build_type|title }})</span>
+                                            </div>
+                                            <button onclick="toggleWishlistBuild({{ build.id }})" class="btn btn-dark btn-sm rounded-circle border border-secondary" title="Remove from Wishlist">
+                                                <i class="fa-solid fa-heart text-danger"></i>
+                                            </button>
+                                        </div>
+                                        
+                                        <!-- Specs details list -->
+                                        <div class="row g-2 mt-2 small text-secondary">
+                                            {% if build.cpu %}<div class="col-6"><i class="fa-solid fa-microchip me-1 text-info" style="width: 16px;"></i>CPU: {{ build.cpu.name }}</div>{% endif %}
+                                            {% if build.motherboard %}<div class="col-6"><i class="fa-solid fa-chess-board me-1 text-purple" style="width: 16px;"></i>Mobo: {{ build.motherboard.name }}</div>{% endif %}
+                                            {% if build.ram %}<div class="col-6"><i class="fa-solid fa-memory me-1 text-success" style="width: 16px;"></i>RAM: {{ build.ram.name }}</div>{% endif %}
+                                            {% if build.gpu %}<div class="col-6"><i class="fa-solid fa-mobile-screen me-1 text-warning" style="width: 16px;"></i>GPU: {{ build.gpu.name }}</div>{% endif %}
+                                            {% if build.ssd %}<div class="col-6"><i class="fa-solid fa-hard-drive me-1 text-cyan" style="width: 16px;"></i>SSD: {{ build.ssd.name }}</div>{% endif %}
+                                            {% if build.nvme %}<div class="col-6"><i class="fa-solid fa-bolt me-1 text-primary" style="width: 16px;"></i>NVMe: {{ build.nvme.name }}</div>{% endif %}
+                                            {% if build.psu %}<div class="col-6"><i class="fa-solid fa-plug me-1 text-danger" style="width: 16px;"></i>PSU: {{ build.psu.name }}</div>{% endif %}
+                                            {% if build.cabinet %}<div class="col-6"><i class="fa-solid fa-box me-1 text-light" style="width: 16px;"></i>Cabinet: {{ build.cabinet.name }}</div>{% endif %}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mt-4 pt-3 border-top border-secondary">
+                                        <div>
+                                            <span class="text-secondary small d-block">Total Cost:</span>
+                                            <h4 class="text-gradient fw-bold mb-0">{% convert_price build.calculate_total_price_usd %}</h4>
+                                        </div>
+                                        <div class="d-flex gap-2">
+                                            <a href="{% url 'load_preset' build.id %}" class="btn btn-outline-light btn-sm px-3">Open in Builder</a>
+                                            <form action="{% url 'cart_add_build' build.id %}" method="POST">
+                                                {% csrf_token %}
+                                                <button type="submit" class="btn btn-premium btn-sm px-3">Add Build to Cart</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+    {% else %}
+        <div class="text-center py-5 glass-panel border border-secondary-subtle">
+            <i class="fa-solid fa-heart-broken text-secondary display-3 mb-3 animate-pulse"></i>
+            <h4 class="fw-bold text-light">Your Wishlist is Empty</h4>
+            <p class="text-secondary mb-4">Save component pieces or complete PC build configurations to monitor local pricing.</p>
+            <a href="{% url 'catalog' %}" class="btn btn-premium px-4 rounded-pill">Browse Components</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function toggleWishlist(productId) {
+    const url = `/orders/wishlist/toggle/${productId}/`;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Remove the card from the UI
+            const element = document.getElementById(`wishlist-item-${productId}`);
+            if (element) {
+                element.style.transition = 'all 0.3s ease';
+                element.style.opacity = '0';
+                element.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    element.remove();
+                    // If no items remain, reload to show empty state
+                    if (document.querySelectorAll('[id^="wishlist-item-"]').length === 0 && document.querySelectorAll('[id^="wishlist-build-"]').length === 0) {
+                        window.location.reload();
+                    }
+                }, 300);
+            }
+            
+            // Show toast notification
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: data.message,
+                showConfirmButton: false,
+                timer: 2000,
+                background: '#0f172a',
+                color: '#f8fafc'
+            });
+            
+            // Update wishlist badge count in navbar
+            updateWishlistBadge(data.wishlist_count);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function toggleWishlistBuild(buildId) {
+    const url = `/orders/wishlist/toggle-build/${buildId}/`;
+    
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': '{{ csrf_token }}',
+            'Accept': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            // Remove the configuration from the UI
+            const element = document.getElementById(`wishlist-build-${buildId}`);
+            if (element) {
+                element.style.transition = 'all 0.3s ease';
+                element.style.opacity = '0';
+                element.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    element.remove();
+                    // If no items remain, reload to show empty state
+                    if (document.querySelectorAll('[id^="wishlist-item-"]').length === 0 && document.querySelectorAll('[id^="wishlist-build-"]').length === 0) {
+                        window.location.reload();
+                    }
+                }, 300);
+            }
+            
+            // Show toast notification
+            Swal.fire({
+                toast: true,
+                position: 'top-end',
+                icon: 'success',
+                title: data.message,
+                showConfirmButton: false,
+                timer: 2000,
+                background: '#0f172a',
+                color: '#f8fafc'
+            });
+            
+            // Update wishlist badge count in navbar
+            updateWishlistBadge(data.wishlist_count);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+    });
+}
+
+function updateWishlistBadge(count) {
+    const badges = document.querySelectorAll('.fa-heart + .badge, a[href*="wishlist"] .badge');
+    badges.forEach(badge => {
+        if (count > 0) {
+            badge.innerText = count;
+            badge.style.display = 'inline-block';
+        } else {
+            badge.remove();
+        }
+    });
+}
+</script>
+{% endblock %}

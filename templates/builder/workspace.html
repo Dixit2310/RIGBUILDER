@@ -1,0 +1,560 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Custom PC Configurator Workspace - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-lg-5 my-4">
+    {% include 'builder/_menubar.html' %}
+    <div class="row g-4">
+        
+        <!-- Left: Workspace Slots list -->
+        <div class="col-lg-8">
+            <div class="glass-panel p-4 border border-secondary-subtle mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="fw-bold mb-0 text-light"><i class="fa-solid fa-screwdriver-wrench text-gradient me-2"></i>Workspace Configurator</h2>
+                        <p class="text-secondary small mb-0">Select components sequentially to build a fully validated customized computer desktop.</p>
+                    </div>
+                    <div class="d-flex gap-2">
+                        {% if build.has_components %}
+                            <a href="{% url 'clear_build' %}" class="btn btn-outline-danger btn-sm d-flex align-items-center gap-2" onclick="return confirm('Are you sure you want to clear all selected components from this build?');">
+                                <i class="fa-solid fa-trash-can"></i> Clear All
+                            </a>
+                        {% else %}
+                            <button class="btn btn-outline-secondary btn-sm d-flex align-items-center gap-2" disabled>
+                                <i class="fa-solid fa-trash-can"></i> Clear All
+                            </button>
+                        {% endif %}
+                        {% if user.is_authenticated %}
+                            <a href="{% url 'save_build' %}" class="btn btn-premium btn-sm d-flex align-items-center gap-2">
+                                <i class="fa-solid fa-bookmark"></i> Save Configuration
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Matrix of slots -->
+                <div class="build-slots-container">
+                    {% for cat in categories %}
+                        <div class="builder-slot-row d-flex flex-wrap align-items-center gap-3">
+                            <div class="d-flex align-items-center gap-3 col-12 col-md-5">
+                                <div class="fs-4 text-gradient" style="width: 40px; text-align: center;">
+                                    {% if cat.name == 'CPU' %}<i class="fa-solid fa-microchip"></i>
+                                    {% elif cat.name == 'Motherboard' %}<i class="fa-solid fa-chess-board"></i>
+                                    {% elif cat.name == 'GPU' %}<i class="fa-solid fa-mobile-screen-button"></i>
+                                    {% elif cat.name == 'RAM' %}<i class="fa-solid fa-memory"></i>
+                                    {% elif cat.name == 'Cabinet' %}<i class="fa-solid fa-box"></i>
+                                    {% elif cat.name == 'Power Supply' %}<i class="fa-solid fa-plug"></i>
+                                    {% elif cat.name == 'CPU Cooler' %}<i class="fa-solid fa-snowflake"></i>
+                                    {% elif cat.name == 'NVMe SSD' %}<i class="fa-solid fa-bolt"></i>
+                                    {% else %}<i class="fa-solid fa-hard-drive"></i>
+                                    {% endif %}
+                                </div>
+                                <div>
+                                    <h6 class="fw-bold text-light mb-0">{{ cat.name }}</h6>
+                                    {% if build.target_system %}
+                                        {% if cat.name in build.get_required_components_list %}
+                                            <span class="text-info small fw-bold"><i class="fa-solid fa-circle-exclamation me-1"></i>Required Component</span>
+                                        {% else %}
+                                            <span class="text-secondary small italic">Optional Component</span>
+                                        {% endif %}
+                                    {% endif %}
+                                </div>
+                            </div>
+                            
+                            <!-- Check if component is selected -->
+                            {% if cat.name == 'CPU' and build.cpu %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.cpu.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.cpu.brand.name }} {{ build.cpu.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.cpu.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'cpu' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Motherboard' and build.motherboard %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.motherboard.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.motherboard.brand.name }} {{ build.motherboard.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.motherboard.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'motherboard' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'RAM' and build.ram %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.ram.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.ram.brand.name }} {{ build.ram.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.ram.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'ram' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'GPU' and build.gpu %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.gpu.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.gpu.brand.name }} {{ build.gpu.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.gpu.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'gpu' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'SSD' and build.ssd %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.ssd.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.ssd.brand.name }} {{ build.ssd.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.ssd.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'ssd' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'HDD' and build.hdd %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.hdd.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.hdd.brand.name }} {{ build.hdd.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.hdd.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'hdd' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'NVMe SSD' and build.nvme %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.nvme.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.nvme.brand.name }} {{ build.nvme.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.nvme.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'nvme' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Power Supply' and build.psu %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.psu.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.psu.brand.name }} {{ build.psu.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.psu.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'psu' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Cabinet' and build.cabinet %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.cabinet.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.cabinet.brand.name }} {{ build.cabinet.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.cabinet.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'cabinet' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'CPU Cooler' and build.cpu_cooler %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.cpu_cooler.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.cpu_cooler.brand.name }} {{ build.cpu_cooler.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.cpu_cooler.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'cpu_cooler' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Case Fans' and build.case_fans %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.case_fans.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.case_fans.brand.name }} {{ build.case_fans.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.case_fans.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'case_fans' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Monitor' and build.monitor %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.monitor.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.monitor.brand.name }} {{ build.monitor.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.monitor.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'monitor' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Keyboard' and build.keyboard %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.keyboard.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.keyboard.brand.name }} {{ build.keyboard.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.keyboard.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'keyboard' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Mouse' and build.mouse %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.mouse.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.mouse.brand.name }} {{ build.mouse.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.mouse.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'mouse' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Operating System' and build.os %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.os.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.os.brand.name }} {{ build.os.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.os.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'os' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Speakers' and build.speakers %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.speakers.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.speakers.brand.name }} {{ build.speakers.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.speakers.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'speakers' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Webcam' and build.webcam %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.webcam.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.webcam.brand.name }} {{ build.webcam.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.webcam.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'webcam' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Microphone' and build.microphone %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.microphone.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.microphone.brand.name }} {{ build.microphone.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.microphone.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'microphone' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Gaming Chair' and build.gaming_chair %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.gaming_chair.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.gaming_chair.brand.name }} {{ build.gaming_chair.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.gaming_chair.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'gaming_chair' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Mouse Pad' and build.mouse_pad %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.mouse_pad.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.mouse_pad.brand.name }} {{ build.mouse_pad.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.mouse_pad.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'mouse_pad' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'Thermal Paste' and build.thermal_paste %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.thermal_paste.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.thermal_paste.brand.name }} {{ build.thermal_paste.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.thermal_paste.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'thermal_paste' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'WiFi Card' and build.wifi_card %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.wifi_card.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.wifi_card.brand.name }} {{ build.wifi_card.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.wifi_card.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'wifi_card' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% elif cat.name == 'RGB Accessories' and build.rgb_accessories %}
+                                <div class="col d-flex align-items-center gap-3">
+                                    <img src="{{ build.rgb_accessories.image.url }}" width="45" height="45" class="rounded object-fit-contain bg-dark p-1">
+                                    <div class="text-truncate">
+                                        <h6 class="text-light fw-bold mb-0 text-truncate">{{ build.rgb_accessories.brand.name }} {{ build.rgb_accessories.name }}</h6>
+                                        <span class="text-gradient fw-bold">{% convert_price build.rgb_accessories.final_price_usd %}</span>
+                                    </div>
+                                </div>
+                                <div class="col-auto">
+                                    <a href="{% url 'remove_from_build' 'rgb_accessories' %}" class="btn btn-outline-danger btn-sm rounded-circle"><i class="fa-solid fa-trash"></i></a>
+                                </div>
+                            {% else %}
+                                <div class="col text-secondary small italic">No component configured in this slot</div>
+                                <div class="col-auto">
+                                    <a href="{% url 'catalog' %}?category={{ cat.slug }}" class="btn btn-outline-light btn-sm px-3">Choose Part</a>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Target System Use-Case & Custom Requirements Audit -->
+            <div class="glass-panel p-4 border border-secondary-subtle mb-4 mt-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold text-light mb-0">
+                        <i class="fa-solid fa-server text-gradient me-2"></i>Target System Use-Case
+                    </h5>
+                    {% if build.target_system %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary px-3 py-2 rounded-pill small">{{ build.target_system }}</span>
+                    {% endif %}
+                </div>
+                <p class="text-secondary small">
+                    Specify the system category and custom capability constraints. Our intelligence engine will parse your requirements and audit your chosen components.
+                </p>
+
+                {% if build.target_system %}
+                    {% with status=build.get_required_components_status %}
+                        <div class="mb-4 bg-dark p-3 rounded border border-secondary-subtle">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-secondary small fw-bold">Required Components Progress:</span>
+                                <span class="text-info small fw-bold">{{ status.configured_count }}/{{ status.total_count }} Parts ({{ status.progress_percent }}%)</span>
+                            </div>
+                            <div class="progress progress-premium mb-2" style="height: 10px;">
+                                <div class="progress-bar progress-bar-premium" style="width: {{ status.progress_percent }}%"></div>
+                            </div>
+                            {% if status.missing %}
+                                <div class="text-warning small" style="font-size: 0.8rem;">
+                                    <i class="fa-solid fa-circle-exclamation me-1"></i><strong>Missing Required Parts:</strong> {{ status.missing|join:", " }}
+                                </div>
+                            {% else %}
+                                <div class="text-success small" style="font-size: 0.8rem;">
+                                    <i class="fa-solid fa-circle-check me-1"></i><strong>All Required Parts Configured!</strong> Ready to order.
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endwith %}
+                {% endif %}
+
+                <div class="row g-4">
+                    <!-- Form to Enter/Update Target System -->
+                    <div class="col-md-6">
+                        <form action="{% url 'update_target_system' %}" method="POST" class="bg-dark p-3 rounded-3 border border-secondary-subtle">
+                            {% csrf_token %}
+                            <div class="mb-3">
+                                <label for="target_system" class="form-label text-secondary small fw-semibold">Target System Classification</label>
+                                <input type="text" name="target_system" id="target_system" class="form-control bg-transparent border-secondary text-light rounded-pill px-3" 
+                                       placeholder="e.g. Crypto Currency System, Trading System, AI Workstation" value="{{ build.target_system|default:'' }}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="system_requirements" class="form-label text-secondary small fw-semibold">System Requirements Note (Specs / Features)</label>
+                                <textarea name="system_requirements" id="system_requirements" rows="2" class="form-control bg-transparent border-secondary text-light rounded-3 px-3 py-2" 
+                                          placeholder="e.g. 32GB RAM, 850W PSU, NVIDIA GPU, Multi-monitor support">{{ build.system_requirements|default:'' }}</textarea>
+                            </div>
+                            <button type="submit" class="btn btn-premium btn-sm w-100 rounded-pill"><i class="fa-solid fa-arrows-rotate me-2"></i>Update System Requirements</button>
+                        </form>
+                    </div>
+
+                    <!-- Audit Results -->
+                    <div class="col-md-6">
+                        <div class="bg-dark p-3 rounded-3 border border-secondary-subtle h-100 d-flex flex-column">
+                            <h6 class="fw-bold text-light mb-3"><i class="fa-solid fa-clipboard-check text-gradient me-2"></i>Capability Requirements Audit</h6>
+                            <div class="flex-grow-1 overflow-y-auto" style="max-height: 180px;">
+                                {% if build.target_system or build.system_requirements %}
+                                    {% if compat_results.custom_audit %}
+                                        <div class="d-flex flex-column gap-2">
+                                            {% for audit in compat_results.custom_audit %}
+                                                <div class="p-2 rounded small d-flex gap-2 align-items-start {% if audit.status == 'success' %}bg-success-subtle text-success border border-success-subtle{% elif audit.status == 'warning' %}bg-warning-subtle text-warning border border-warning-subtle{% else %}bg-danger-subtle text-danger border border-danger-subtle{% endif %}">
+                                                    <span class="fs-6 mt-0.5">
+                                                        {% if audit.status == 'success' %}<i class="fa-solid fa-circle-check text-success"></i>
+                                                        {% elif audit.status == 'warning' %}<i class="fa-solid fa-circle-exclamation text-warning"></i>
+                                                        {% else %}<i class="fa-solid fa-circle-xmark text-danger"></i>
+                                                        {% endif %}
+                                                    </span>
+                                                    <div style="font-size: 0.85rem; line-height: 1.3;">
+                                                        {{ audit.message }}
+                                                    </div>
+                                                </div>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <div class="text-secondary small italic text-center my-4">
+                                            <i class="fa-solid fa-circle-info fs-3 mb-2 d-block text-info"></i>
+                                            All parts selected match basic capabilities for this system category.
+                                        </div>
+                                    {% endif %}
+                                {% else %}
+                                    <div class="text-secondary small italic text-center my-4">
+                                        <i class="fa-solid fa-keyboard fs-3 mb-2 d-block text-secondary opacity-50"></i>
+                                        Enter a target system type (like "Crypto Currency System" or "Trading System") on the left to activate the dynamic components audit.
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right: Diagnostic compatibility and live indicators sticky panel -->
+        <div class="col-lg-4">
+            
+            <!-- Live Quotation Card -->
+            <div class="glass-panel p-4 border border-secondary-subtle mb-4 sticky-lg-top" style="top: 90px; z-index: 100;">
+                <h5 class="fw-bold mb-3">Live Rig Pricing</h5>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">Subtotal:</span>
+                    <span class="fw-bold text-light">{% currency_symbol %}{{ price_details.subtotal }}</span>
+                </div>
+                
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">GST / Taxes ({{ selected_country.default_tax_rate|floatformat:0 }}%):</span>
+                    <span class="text-secondary">{% currency_symbol %}{{ price_details.tax }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-secondary">Shipping:</span>
+                    <span class="text-secondary">{% currency_symbol %}{{ price_details.shipping }}</span>
+                </div>
+                <hr class="border-secondary">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h6 class="fw-bold mb-0">Grand Total:</h6>
+                    <h4 class="text-gradient fw-bold mb-0">{% currency_symbol %}{{ price_details.grand_total }}</h4>
+                </div>
+
+                <!-- Compatibility Diagnostics summary -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2">Compatibility Status</h6>
+                    {% if compat_results.is_compatible %}
+                        <div class="badge-compat badge-compat-success w-100 mb-2 py-2">
+                            <i class="fa-solid fa-circle-check"></i> All Components Compatible
+                        </div>
+                    {% else %}
+                        <div class="badge-compat badge-compat-error w-100 mb-2 py-2">
+                            <i class="fa-solid fa-triangle-exclamation"></i> Incompatibilities Detected
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Errors list -->
+                    {% for err in compat_results.errors %}
+                        <div class="text-danger small mb-1"><i class="fa-solid fa-circle-xmark me-2"></i>{{ err }}</div>
+                    {% endfor %}
+                    
+                    <!-- Warnings list -->
+                    {% for warn in compat_results.warnings %}
+                        <div class="text-warning small mb-1"><i class="fa-solid fa-circle-exclamation me-2"></i>{{ warn }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Live Power & Temperature Clearance indicators -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2 d-flex justify-content-between">
+                        <span>Power Draw:</span>
+                        <span class="text-gradient">{{ compat_results.warnings|yesno:"High Draw,Optimal" }}</span>
+                    </h6>
+                    <div class="progress progress-premium mb-3">
+                        <div class="progress-bar progress-bar-premium" style="width: {% widthratio build.calculate_total_power 800 100 %}%"></div>
+                    </div>
+                    <div class="d-flex justify-content-between text-secondary small">
+                        <span>Est. TDP: {{ build.calculate_total_power }} W</span>
+                        <span>Selected PSU: {{ build.psu.psu_wattage_rating|default:"0" }} W</span>
+                    </div>
+                </div>
+
+                <!-- Bottleneck Gauge -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-1">Bottleneck Estimation</h6>
+                    <div class="d-flex justify-content-between text-secondary small mb-1">
+                        <span>Type: {{ bottleneck.type }}</span>
+                        <span class="fw-bold text-light">{{ bottleneck.percentage }}%</span>
+                    </div>
+                    <div class="progress progress-premium">
+                        <div class="progress-bar bg-warning" style="width: {{ bottleneck.percentage }}%"></div>
+                    </div>
+                    <p class="text-secondary small mt-2" style="font-size:0.75rem;">{{ bottleneck.description }}</p>
+                </div>
+
+                <!-- FPS Benchmarks estimates -->
+                <div class="mb-4">
+                    <h6 class="fw-bold mb-2">Estimated Game FPS</h6>
+                    <ul class="nav nav-tabs nav-justified bg-dark rounded border-0 p-1 mb-2" id="fpsTab" role="tablist">
+                        <li class="nav-item">
+                            <button class="nav-link active py-1 text-light border-0 small" data-bs-toggle="tab" data-bs-target="#fps1080">1080p</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-1 text-light border-0 small" data-bs-toggle="tab" data-bs-target="#fps1440">1440p</button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link py-1 text-light border-0 small" data-bs-toggle="tab" data-bs-target="#fps4K">4K</button>
+                        </li>
+                    </ul>
+                    <div class="tab-content" id="fpsTabContent">
+                        <div class="tab-pane fade show active" id="fps1080">
+                            {% for game in fps_estimates.1080p %}
+                                <div class="d-flex justify-content-between small mb-1 border-bottom border-secondary-subtle pb-1">
+                                    <span class="text-secondary">{{ game.game }}</span>
+                                    <span class="fw-bold text-gradient">{{ game.fps }} FPS</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="tab-pane fade" id="fps1440">
+                            {% for game in fps_estimates.1440p %}
+                                <div class="d-flex justify-content-between small mb-1 border-bottom border-secondary-subtle pb-1">
+                                    <span class="text-secondary">{{ game.game }}</span>
+                                    <span class="fw-bold text-gradient">{{ game.fps }} FPS</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                        <div class="tab-pane fade" id="fps4K">
+                            {% for game in fps_estimates.4K %}
+                                <div class="d-flex justify-content-between small mb-1 border-bottom border-secondary-subtle pb-1">
+                                    <span class="text-secondary">{{ game.game }}</span>
+                                    <span class="fw-bold text-gradient">{{ game.fps }} FPS</span>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Add Entire configuration to Cart -->
+                <form action="{% url 'cart_add_build' build.id %}" method="POST">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-premium w-100 py-2 {% if not compat_results.is_compatible %}disabled{% endif %} rounded-pill"><i class="fa-solid fa-cart-arrow-down me-2"></i>Add Setup to Cart</button>
+                </form>
+            </div>
+            
+        </div>
+        
+    </div>
+</div>
+{% endblock %}

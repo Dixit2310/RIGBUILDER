@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Checkout - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <h2 class="fw-bold mb-4"><i class="fa-solid fa-credit-card text-gradient me-2"></i>Checkout</h2>
+    
+    <form action="{% url 'place_order' %}" method="POST">
+        {% csrf_token %}
+        <div class="row g-4">
+            
+            <!-- Left: Address Selection and Payments -->
+            <div class="col-lg-8">
+                
+                <!-- Shipping Address Select -->
+                <div class="glass-panel p-4 border border-secondary-subtle mb-4">
+                    <h5 class="fw-bold text-light mb-3"><i class="fa-solid fa-truck text-gradient me-2"></i>Shipping Address</h5>
+                    <div class="row g-3">
+                        {% for address in addresses %}
+                            {% if address.address_type == 'SHIPPING' %}
+                                <div class="col-md-6">
+                                    <label class="custom-radio-tile d-block h-100" for="ship-{{ address.id }}">
+                                        <input type="radio" name="shipping_address" id="ship-{{ address.id }}" value="{{ address.id }}" {% if address.is_default %}checked{% endif %}>
+                                        <div class="tile-content text-light pt-2">
+                                            <span class="fw-bold d-block mb-1">{{ address.full_name }}</span>
+                                            <p class="small text-secondary mb-0">
+                                                {{ address.street_address }}<br>
+                                                {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
+                                                Phone: {{ address.phone_number }}
+                                            </p>
+                                        </div>
+                                    </label>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Billing Address Select -->
+                <div class="glass-panel p-4 border border-secondary-subtle mb-4">
+                    <h5 class="fw-bold text-light mb-3"><i class="fa-solid fa-file-invoice-dollar text-gradient me-2"></i>Billing Address</h5>
+                    <div class="row g-3">
+                        {% for address in addresses %}
+                            {% if address.address_type == 'BILLING' %}
+                                <div class="col-md-6">
+                                    <label class="custom-radio-tile d-block h-100" for="bill-{{ address.id }}">
+                                        <input type="radio" name="billing_address" id="bill-{{ address.id }}" value="{{ address.id }}" {% if address.is_default %}checked{% endif %}>
+                                        <div class="tile-content text-light pt-2">
+                                            <span class="fw-bold d-block mb-1">{{ address.full_name }}</span>
+                                            <p class="small text-secondary mb-0">
+                                                {{ address.street_address }}<br>
+                                                {{ address.city }}, {{ address.state }} - {{ address.postal_code }}<br>
+                                                Phone: {{ address.phone_number }}
+                                            </p>
+                                        </div>
+                                    </label>
+                                </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Payment Methods Select -->
+                <div class="glass-panel p-4 border border-secondary-subtle mb-4">
+                    <h5 class="fw-bold text-light mb-3"><i class="fa-solid fa-wallet text-gradient me-2"></i>Payment Method</h5>
+                    
+                    <div class="d-flex flex-column gap-3">
+                        <label class="custom-radio-tile d-flex align-items-center gap-3" for="payCOD">
+                            <input type="radio" name="payment_method" id="payCOD" value="COD" checked>
+                            <div class="tile-content d-flex align-items-center gap-3 text-light pt-1">
+                                <i class="fa-solid fa-money-bill-wave text-success fs-4"></i>
+                                <div>
+                                    <span class="fw-bold d-block">Cash On Delivery (COD)</span>
+                                    <span class="text-secondary small">Pay with cash upon package receipt</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="custom-radio-tile d-flex align-items-center gap-3" for="payStripe">
+                            <input type="radio" name="payment_method" id="payStripe" value="STRIPE">
+                            <div class="tile-content d-flex align-items-center gap-3 text-light pt-1">
+                                <i class="fa-brands fa-cc-stripe text-primary fs-4"></i>
+                                <div>
+                                    <span class="fw-bold d-block">Stripe Secure Payment</span>
+                                    <span class="text-secondary small">Pay instantly using Credit / Debit card</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="custom-radio-tile d-flex align-items-center gap-3" for="payPayPal">
+                            <input type="radio" name="payment_method" id="payPayPal" value="PAYPAL">
+                            <div class="tile-content d-flex align-items-center gap-3 text-light pt-1">
+                                <i class="fa-brands fa-paypal text-info fs-4"></i>
+                                <div>
+                                    <span class="fw-bold d-block">PayPal Checkout</span>
+                                    <span class="text-secondary small">Redirect to PayPal to process payment</span>
+                                </div>
+                            </div>
+                        </label>
+                        <label class="custom-radio-tile d-flex align-items-center gap-3" for="payRazorpay">
+                            <input type="radio" name="payment_method" id="payRazorpay" value="RAZORPAY">
+                            <div class="tile-content d-flex align-items-center gap-3 text-light pt-1">
+                                <i class="fa-solid fa-credit-card text-warning fs-4"></i>
+                                <div>
+                                    <span class="fw-bold d-block">Razorpay Checkout</span>
+                                    <span class="text-secondary small">Secure payments via UPI, NetBanking, and Cards</span>
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right: Order breakdowns -->
+            <div class="col-lg-4">
+                <div class="glass-panel p-4 border border-secondary-subtle">
+                    <h5 class="fw-bold text-light mb-4">Checkout Summary</h5>
+                    
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Subtotal:</span>
+                        <span class="fw-bold text-light">{{ symbol }} {{ subtotal }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Coupon Discount:</span>
+                        <span class="text-success fw-semibold">- {{ symbol }} {{ discount }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">GST / Taxes ({{ country.default_tax_rate }}%):</span>
+                        <span class="text-secondary">{{ symbol }} {{ tax }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-secondary">Shipping:</span>
+                        <span class="text-secondary">{{ symbol }} {{ shipping }}</span>
+                    </div>
+                    <hr class="border-secondary">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h6 class="fw-bold text-light mb-0">Grand Total:</h6>
+                        <h4 class="text-gradient fw-bold mb-0">{{ symbol }} {{ grand_total }}</h4>
+                    </div>
+
+                    <button type="submit" class="btn btn-premium w-100 py-2 text-center rounded-pill"><i class="fa-solid fa-shield-halved me-2"></i>Confirm and Pay</button>
+                </div>
+            </div>
+            
+        </div>
+    </form>
+</div>
+{% endblock %}

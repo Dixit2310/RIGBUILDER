@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}{{ product.brand.name }} {{ product.name }} - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="row g-4 mb-5">
+        
+        <!-- Left: Product Image -->
+        <div class="col-md-5">
+            <div class="glass-panel p-4 border border-secondary-subtle text-center bg-dark" style="height: 350px;">
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="img-fluid h-100" style="object-fit: contain;">
+            </div>
+        </div>
+
+        <!-- Right: Purchase Options and details -->
+        <div class="col-md-7">
+            <div class="glass-panel p-4 border border-secondary-subtle h-100 d-flex flex-column justify-content-between">
+                <div>
+                    <span class="badge bg-primary mb-2">{{ product.category.name }}</span>
+                    <h2 class="fw-bold text-light mb-1">{{ product.brand.name }} {{ product.name }}</h2>
+                    
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="text-warning"><i class="fa-solid fa-star"></i></span>
+                        <span class="fw-bold text-light">{{ product.rating }}</span>
+                        <span class="text-secondary small">({{ product.reviews.count }} reviews)</span>
+                        <span class="text-secondary">|</span>
+                        {% if product.stock > 0 %}
+                            <span class="text-success small"><i class="fa-solid fa-check-double me-1"></i>In Stock ({{ product.stock }} units)</span>
+                        {% else %}
+                            <span class="text-danger small"><i class="fa-solid fa-triangle-exclamation me-1"></i>Out of Stock</span>
+                        {% endif %}
+                    </div>
+
+                    <p class="text-secondary leading-relaxed small mb-4">{{ product.description }}</p>
+
+                    <!-- Converted pricing list -->
+                    <div class="mb-4">
+                        <h3 class="text-gradient fw-bold mb-1">{% convert_price product.final_price_usd %}</h3>
+                        {% if product.discount_percentage > 0 %}
+                            <span class="text-secondary small text-decoration-line-through me-2">{% convert_price product.original_price_usd %}</span>
+                            <span class="badge bg-danger">-{{ product.discount_percentage }}%</span>
+                        {% endif %}
+                        <p class="text-secondary small mt-1" style="font-size: 0.75rem;">
+                            Includes GST ({{ selected_country.default_tax_rate|floatformat:0 }}%) and Shipping ({% convert_price selected_country.default_shipping_charge %})
+                        </p>
+                    </div>
+                </div>
+
+                <div class="d-flex gap-3 align-items-center flex-wrap">
+                    <button onclick="toggleWishlist(this, {{ product.id }})" class="btn {% if is_in_wishlist %}btn-danger{% else %}btn-outline-danger{% endif %} px-4 py-2" title="Toggle Wishlist">
+                        <i class="{% if is_in_wishlist %}fa-solid{% else %}fa-regular{% endif %} fa-heart me-2"></i>Wishlist
+                    </button>
+                    <a href="{% url 'add_to_build' product.id %}" class="btn btn-outline-info px-4 py-2"><i class="fa-solid fa-screwdriver-wrench me-2"></i>Add to Build Slot</a>
+                    
+                    <form action="{% url 'cart_add' product.id %}" method="POST" class="d-flex align-items-center gap-2 m-0">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" class="form-control bg-dark border-secondary text-light text-center rounded-pill" style="width: 70px;" value="1" min="1" max="{{ product.stock }}">
+                        <button type="submit" class="btn btn-premium px-4 py-2 {% if product.stock == 0 %}disabled{% endif %} rounded-pill"><i class="fa-solid fa-cart-shopping me-2"></i>Add to Cart</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Specs and reviews Tabs grid -->
+    <div class="row g-4">
+        <!-- Specs Specifications column -->
+        <div class="col-lg-6">
+            <div class="glass-panel p-4 border border-secondary-subtle h-100">
+                <h4 class="fw-bold text-light mb-4"><i class="fa-solid fa-list-check text-gradient me-2"></i>Specifications</h4>
+                <div class="table-responsive">
+                    <table class="table table-dark table-striped align-middle mb-0 small">
+                        <tbody>
+                            <tr><th scope="row">Brand</th><td>{{ product.brand.name }}</td></tr>
+                            <tr><th scope="row">Model Name</th><td>{{ product.name }}</td></tr>
+                            <tr><th scope="row">Warranty</th><td>{{ product.warranty_years }} Years</td></tr>
+                            <tr><th scope="row">Power (TDP)</th><td>{{ product.power_consumption_watts }} W</td></tr>
+                            <tr><th scope="row">RGB Support</th><td>{{ product.rgb_support|yesno:"Yes,No" }}</td></tr>
+                            
+                            {% if product.socket %}
+                                <tr><th scope="row">Socket Match</th><td>{{ product.socket }}</td></tr>
+                            {% endif %}
+                            {% if product.ram_type %}
+                                <tr><th scope="row">RAM DDR Type</th><td>{{ product.ram_type }}</td></tr>
+                            {% endif %}
+                            {% if product.ram_speed %}
+                                <tr><th scope="row">RAM Speed</th><td>{{ product.ram_speed }} MHz</td></tr>
+                            {% endif %}
+                            {% if product.form_factor %}
+                                <tr><th scope="row">Form Factor</th><td>{{ product.form_factor }}</td></tr>
+                            {% endif %}
+                            {% if product.gpu_length %}
+                                <tr><th scope="row">GPU Length</th><td>{{ product.gpu_length }} mm</td></tr>
+                            {% endif %}
+                            {% if product.psu_wattage_rating %}
+                                <tr><th scope="row">PSU Rating</th><td>{{ product.psu_wattage_rating }} W</td></tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Product Reviews column -->
+        <div class="col-lg-6">
+            <div class="glass-panel p-4 border border-secondary-subtle h-100">
+                <h4 class="fw-bold text-light mb-4"><i class="fa-solid fa-comments text-gradient me-2"></i>Reviews & Ratings</h4>
+                
+                <!-- Review submit form if authenticated -->
+                {% if user.is_authenticated %}
+                    <form method="POST" enctype="multipart/form-data" class="mb-4 border-bottom border-secondary pb-4">
+                        {% csrf_token %}
+                        <h6 class="fw-bold text-light mb-2">Leave a Review</h6>
+                        <div class="mb-3">
+                            <label class="form-label small text-secondary">Rating (1 to 5 Stars)</label>
+                            <select name="rating" class="form-select bg-dark border-secondary text-light small">
+                                <option value="5">5 Stars (Excellent)</option>
+                                <option value="4">4 Stars (Good)</option>
+                                <option value="3">3 Stars (Average)</option>
+                                <option value="2">2 Stars (Poor)</option>
+                                <option value="1">1 Star (Terrible)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small text-secondary">Your Comment</label>
+                            <textarea name="comment" class="form-control bg-dark border-secondary text-light small" rows="3" placeholder="Share your experience with this hardware..." required></textarea>
+                        </div>
+                        <div class="text-end">
+                            <button type="submit" class="btn btn-premium btn-sm px-4">Submit Review</button>
+                        </div>
+                    </form>
+                {% endif %}
+
+                <!-- Reviews lists -->
+                <div class="reviews-list" style="max-height: 350px; overflow-y: auto;">
+                    {% for rev in reviews %}
+                        <div class="border-bottom border-secondary pb-3 mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <h6 class="fw-bold text-light mb-0">{{ rev.user.username }}</h6>
+                                <span class="text-warning small">
+                                    {% for i in "12345" %}
+                                        {% if forloop.counter <= rev.rating %}<i class="fa-solid fa-star"></i>{% endif %}
+                                    {% endfor %}
+                                </span>
+                            </div>
+                            {% if rev.is_verified_purchase %}
+                                <span class="badge bg-success mb-2" style="font-size:0.65rem;"><i class="fa-solid fa-shield-check me-1"></i>Verified Purchase</span>
+                            {% endif %}
+                            <p class="text-secondary small mb-0">{{ rev.comment }}</p>
+                        </div>
+                    {% empty %}
+                        <p class="text-secondary small">No customer reviews submitted yet. Be the first!</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleWishlist(btn, productId) {
+        // If user is not authenticated, redirect to login
+        {% if not user.is_authenticated %}
+            window.location.href = "{% url 'login' %}";
+            return;
+        {% endif %}
+
+        const url = `/orders/wishlist/toggle/${productId}/`;
+        
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRFToken': '{{ csrf_token }}',
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const icon = btn.querySelector('i');
+                if (data.added) {
+                    btn.classList.remove('btn-outline-danger');
+                    btn.classList.add('btn-danger');
+                    icon.classList.remove('fa-regular');
+                    icon.classList.add('fa-solid');
+                } else {
+                    btn.classList.remove('btn-danger');
+                    btn.classList.add('btn-outline-danger');
+                    icon.classList.remove('fa-solid');
+                    icon.classList.add('fa-regular');
+                }
+                
+                // Show toast notification
+                Swal.fire({
+                    toast: true,
+                    position: 'top-end',
+                    icon: 'success',
+                    title: data.message,
+                    showConfirmButton: false,
+                    timer: 2000,
+                    background: '#0f172a',
+                    color: '#f8fafc'
+                });
+                
+                // Update badge counts in header
+                updateWishlistBadge(data.wishlist_count);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    }
+
+    function updateWishlistBadge(count) {
+        const headerWishlistLink = document.querySelector('a[href*="wishlist"]');
+        if (headerWishlistLink) {
+            let badge = headerWishlistLink.querySelector('.badge');
+            if (count > 0) {
+                if (badge) {
+                    badge.innerText = count;
+                } else {
+                    badge = document.createElement('span');
+                    badge.className = 'position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger';
+                    badge.style.fontSize = '0.65rem';
+                    badge.innerText = count;
+                    headerWishlistLink.appendChild(badge);
+                }
+            } else {
+                if (badge) badge.remove();
+            }
+        }
+    }
+</script>
+{% endblock %}

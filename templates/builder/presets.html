@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency_filters %}
+
+{% block title %}Signature Preset Rigs - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    {% include 'builder/_menubar.html' %}
+    <div class="text-center mb-5">
+        <h2 class="fw-bold">Signature Preset <span class="text-gradient">Desktop Rigs</span></h2>
+        <p class="text-secondary">Explore expert configurations for high refresh rate gaming, 4K rendering, and budget coding setups.</p>
+    </div>
+
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+        {% for preset in presets %}
+            <div class="col">
+                <div class="glass-panel p-4 border border-secondary-subtle h-100 d-flex flex-column justify-content-between">
+                    <div>
+                        <div class="d-flex justify-content-between align-items-start mb-3">
+                            <h4 class="fw-bold mb-0 text-light">{{ preset.name }}</h4>
+                            <span class="badge bg-primary">{{ preset.get_build_type_display }}</span>
+                        </div>
+                        
+                        <p class="text-secondary small mb-3">Compatible custom PC build ready to order or customize in your workspace configurator.</p>
+
+                        <h6 class="fw-bold text-light small mb-2">Core Component Spec:</h6>
+                        <ul class="list-unstyled text-secondary small mb-4">
+                            <li><i class="fa-solid fa-microchip text-gradient me-2"></i>CPU: {{ preset.cpu.brand.name }} {{ preset.cpu.name|default:"TBD" }}</li>
+                            <li><i class="fa-solid fa-chess-board text-gradient me-2"></i>Mobo: {{ preset.motherboard.brand.name }} {{ preset.motherboard.name|default:"TBD" }}</li>
+                            <li><i class="fa-solid fa-memory text-gradient me-2"></i>RAM: {{ preset.ram.brand.name }} {{ preset.ram.name|default:"TBD" }}</li>
+                            <li><i class="fa-solid fa-mobile-screen text-gradient me-2"></i>GPU: {{ preset.gpu.brand.name }} {{ preset.gpu.name|default:"Integrated" }}</li>
+                            <li><i class="fa-solid fa-hard-drive text-gradient me-2"></i>Storage: {{ preset.ssd.brand.name }} {{ preset.ssd.name|default:"TBD" }}</li>
+                            <li><i class="fa-solid fa-plug text-gradient me-2"></i>PSU: {{ preset.psu.brand.name }} {{ preset.psu.name|default:"TBD" }}</li>
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="text-secondary small">Est. Total (Base USD):</span>
+                            <h3 class="text-gradient fw-bold mb-0">{% convert_price preset.calculate_total_price_usd %}</h3>
+                        </div>
+                        <a href="{% url 'load_preset' preset.id %}" class="btn btn-premium w-100 rounded-pill"><i class="fa-solid fa-upload me-2"></i>Load Into Configurator</a>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="col-12 text-center py-5">
+                <p class="text-secondary">No signature presets available yet. Run the seed data command.</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

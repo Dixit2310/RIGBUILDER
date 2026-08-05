@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact Us - RIGBUILDER{% endblock %}
+
+{% block content %}
+<div class="container my-4">
+    <div class="col-md-7 mx-auto">
+        <div class="glass-panel p-5 border border-secondary-subtle">
+            <h3 class="fw-bold text-light mb-4"><i class="fa-solid fa-paper-plane text-gradient me-2"></i>Contact Us</h3>
+            <p class="text-secondary small mb-4">Have questions about compatibility, warranty, or custom setups? Message our support staff directly.</p>
+            
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Your Name</label>
+                        <input type="text" name="name" class="form-control bg-dark border-secondary text-light rounded-pill" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small text-secondary">Email Address</label>
+                        <input type="email" name="email" class="form-control bg-dark border-secondary text-light rounded-pill" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-secondary">Subject</label>
+                        <input type="text" name="subject" class="form-control bg-dark border-secondary text-light rounded-pill" required>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small text-secondary">Message</label>
+                        <textarea name="message" class="form-control bg-dark border-secondary text-light" rows="5" required></textarea>
+                    </div>
+                </div>
+                
+                <div class="d-flex justify-content-end gap-3 mt-4 pt-3 border-top border-secondary">
+                    <button type="submit" class="btn btn-premium px-4 rounded-pill">SendMessage</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

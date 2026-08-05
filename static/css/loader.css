@@ -1,0 +1,260 @@
+/* Futuristic Premium PC Assembly Page Loader Stylesheet */
+
+:root {
+    --loader-bg: #050816;
+    --loader-primary: #3B82F6;
+    --loader-secondary: #8B5CF6;
+    --loader-accent: #00F5FF;
+    --loader-text: #f8fafc;
+}
+
+.futuristic-loader-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: var(--loader-bg);
+    z-index: 999999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    transition: opacity 0.8s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.8s;
+}
+
+/* Exit fade away */
+.futuristic-loader-wrapper.fade-away {
+    opacity: 0;
+    visibility: hidden;
+}
+
+/* Grid Matrix backdrop */
+.loader-bg-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: 35px 35px;
+    background-image: 
+        linear-gradient(to right, rgba(59, 130, 246, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(59, 130, 246, 0.03) 1px, transparent 1px);
+    opacity: 0.9;
+    z-index: 0;
+}
+
+/* Pulsing background soft lighting */
+.loader-bg-glow {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, rgba(0, 245, 255, 0.02) 60%, transparent 100%);
+    filter: blur(40px);
+    animation: pulseLoaderGlow 6s infinite ease-in-out;
+    z-index: 0;
+}
+
+/* Floating RGB particles */
+.loader-bg-particles {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.particle {
+    position: absolute;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    opacity: 0.25;
+    animation: floatParticle 9s infinite ease-in-out;
+}
+
+.p1 { top: 15%; left: 20%; animation-delay: 0s; background: var(--loader-primary); }
+.p2 { top: 75%; left: 10%; animation-delay: 2s; background: var(--loader-secondary); }
+.p3 { top: 35%; left: 85%; animation-delay: 4s; background: var(--loader-accent); }
+.p4 { top: 85%; left: 75%; animation-delay: 1.5s; background: #ec4899; }
+.p5 { top: 10%; left: 70%; animation-delay: 3s; background: #10B981; }
+
+@keyframes floatParticle {
+    0%, 100% { transform: translateY(0) translateX(0); opacity: 0.2; }
+    50% { transform: translateY(-50px) translateX(25px); opacity: 0.7; }
+}
+
+@keyframes pulseLoaderGlow {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.8; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+}
+
+/* Container */
+.loader-container {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    width: 320px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Brand Logo */
+.loader-brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 1.6rem;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    color: var(--loader-text);
+    text-shadow: 0 0 15px rgba(255, 255, 255, 0.1);
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.logo-pulse-icon {
+    color: var(--loader-accent);
+    animation: pulseIcon 2s infinite ease-in-out;
+}
+
+.logo-accent {
+    background: linear-gradient(135deg, var(--loader-secondary) 0%, var(--loader-accent) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@keyframes pulseIcon {
+    0%, 100% { transform: scale(1); filter: drop-shadow(0 0 2px var(--loader-accent)); }
+    50% { transform: scale(1.15); filter: drop-shadow(0 0 8px var(--loader-accent)); }
+}
+
+/* SVG Wrapper & Hardware Assembly parts rules */
+.svg-wrapper {
+    background: rgba(13, 17, 39, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 16px;
+    padding: 15px;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.assembly-part {
+    transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.6s ease;
+    opacity: 1;
+    transform: translate(0, 0) scale(1);
+}
+
+.assembly-part.hidden {
+    opacity: 0;
+}
+
+/* Directions for component slide-ins */
+#part-cpu.hidden {
+    transform: translateY(-50px) scale(0.8);
+}
+#part-ram.hidden {
+    transform: translateX(50px);
+}
+#part-ssd.hidden {
+    transform: translateY(20px) scale(0.6);
+}
+#part-gpu.hidden {
+    transform: translateX(-60px) scale(0.9);
+}
+#part-cooler.hidden {
+    transform: scale(1.5);
+}
+#part-cables.hidden {
+    opacity: 0;
+}
+
+/* Cooling System fan blades & ring animations */
+.spinning-rgb-ring {
+    transform-origin: 200px 150px;
+    animation: rotateRGBRing 3s linear infinite;
+    filter: drop-shadow(0 0 3px rgba(0, 245, 255, 0.5));
+}
+
+#cooler-fan-blades {
+    transform-origin: 200px 150px;
+}
+
+.fan-spinning #cooler-fan-blades {
+    animation: spinCoolerBlades 0.4s linear infinite;
+}
+
+@keyframes rotateRGBRing {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+@keyframes spinCoolerBlades {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Cable flow flow */
+.cable-flow {
+    animation: psuCableFlow 1s linear infinite;
+}
+@keyframes psuCableFlow {
+    0% { stroke-dashoffset: 12; }
+    100% { stroke-dashoffset: 0; }
+}
+
+/* GPU electric lines */
+.electric-line {
+    stroke-dasharray: 240;
+    stroke-dashoffset: 240;
+    animation: gpuSpark 2s linear infinite;
+}
+@keyframes gpuSpark {
+    0%, 100% { stroke-dashoffset: 240; opacity: 0.4; }
+    50% { stroke-dashoffset: 0; opacity: 1; filter: drop-shadow(0 0 4px var(--loader-accent)); }
+}
+
+/* Status Text */
+.loader-status-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.1em;
+    color: #94a3b8;
+    height: 20px;
+    text-transform: uppercase;
+}
+
+/* Progress Bar wrapper and gradients */
+.loader-progress-wrap {
+    width: 100%;
+    height: 5px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.02);
+    position: relative;
+}
+
+.loader-progress-bar {
+    width: 0%;
+    height: 100%;
+    background: linear-gradient(90deg, var(--loader-primary) 0%, var(--loader-secondary) 50%, var(--loader-accent) 100%);
+    border-radius: 10px;
+    box-shadow: 0 0 8px var(--loader-accent);
+    transition: width 0.05s linear;
+}
+
+/* Percentage counters */
+.loader-percentage-text {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--loader-accent);
+    letter-spacing: 0.05em;
+    font-family: monospace;
+}
